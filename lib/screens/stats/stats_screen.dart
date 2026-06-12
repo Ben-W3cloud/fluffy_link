@@ -10,7 +10,7 @@ import 'package:go_router/go_router.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key, required this.code, LinkService? linkService})
-    : _linkService = linkService ?? LinkService();
+    : _linkService = linkService;
 
   final String code;
   final LinkService? _linkService;

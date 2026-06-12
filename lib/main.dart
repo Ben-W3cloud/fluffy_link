@@ -13,10 +13,11 @@ Future<void> _initializeSupabase() async {
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
-  // README expects real dart-defines; keep local runs/tests usable until they
-  // are provided by skipping initialization when either value is missing.
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
-    return;
+    throw Exception(
+      'Missing SUPABASE_URL or SUPABASE_ANON_KEY. '
+      'Pass them via --dart-define at build time.',
+    );
   }
 
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);

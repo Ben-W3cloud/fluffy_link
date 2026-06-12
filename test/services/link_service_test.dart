@@ -21,7 +21,7 @@ void main() {
     expect(link.statsUrl, 'https://perma.link/s/abc123');
     expect(
       link.walrusUrl,
-      'https://aggregator.walrus-testnet.walrus.space/v1/blob-id',
+      'https://aggregator.walrus-testnet.walrus.space/v1/blobs/blob-id',
     );
   });
 }
