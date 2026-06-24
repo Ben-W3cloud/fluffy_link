@@ -31,9 +31,14 @@ class LinkModel {
     );
   }
 
-  String get shortUrl => '${AppConstants.appDomain}/$shortCode';
+  String get _baseUrl {
+    final domain = AppConstants.appDomain;
+    return domain.endsWith('/') ? domain.substring(0, domain.length - 1) : domain;
+  }
 
-  String get statsUrl => '${AppConstants.appDomain}/s/$shortCode';
+  String get shortUrl => '$_baseUrl/$shortCode';
+
+  String get statsUrl => '$_baseUrl/s/$shortCode';
 
   String get walrusUrl => '${AppConstants.walrusAggregator}/v1/blobs/$blobId';
 

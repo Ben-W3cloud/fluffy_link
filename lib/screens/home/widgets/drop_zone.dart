@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/screens/home/widgets/drop_zone_listener.dart'
     if (dart.library.html) 'package:fluffy_link/screens/home/widgets/drop_zone_web.dart';
 import 'package:flutter/material.dart';
@@ -34,33 +35,81 @@ class _DropZoneState extends State<DropZone> {
 
   @override
   Widget build(BuildContext context) {
-    const idleBorder = Color(0xFFD1D5DB);
-    const hoverFill = Color(0xFFF0FDFA);
-    final primary = Theme.of(context).colorScheme.primary;
-
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 200),
         height: 200,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: _hovered ? hoverFill : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          gradient: _hovered
+              ? LinearGradient(
+                  colors: [
+                    AppTheme.primary.withValues(alpha: 0.1),
+                    AppTheme.primaryDark.withValues(alpha: 0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : LinearGradient(
+                  colors: [AppTheme.surface, AppTheme.surfaceAlt],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: _hovered
+              ? AppTheme.glowShadow(opacity: 0.15, blur: 24)
+              : null,
         ),
         child: CustomPaint(
           painter: _DashedBorderPainter(
-            color: _hovered ? primary : idleBorder,
-            borderRadius: 16,
+            color: _hovered
+                ? AppTheme.primary.withValues(alpha: 0.6)
+                : AppTheme.border,
+            borderRadius: 14,
           ),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.upload_file_outlined, size: 40),
-                SizedBox(height: 12),
-                Text('Drop your file here'),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: _hovered
+                        ? AppTheme.primaryGradient
+                        : LinearGradient(
+                            colors: [
+                              AppTheme.primary.withValues(alpha: 0.1),
+                              AppTheme.primaryDark.withValues(alpha: 0.06),
+                            ],
+                          ),
+                    boxShadow: _hovered
+                        ? AppTheme.glowShadow(opacity: 0.4, blur: 16)
+                        : null,
+                  ),
+                  child: Icon(
+                    Icons.upload_file_outlined,
+                    size: 30,
+                    color: _hovered ? Colors.white : AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Drop your file here',
+                  style: TextStyle(
+                    color: _hovered ? AppTheme.onSurfaceBright : AppTheme.muted,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'or click Browse below',
+                  style: TextStyle(color: AppTheme.mutedDim, fontSize: 12),
+                ),
               ],
             ),
           ),

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:fluffy_link/core/page_scaffold.dart';
+import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/core/utils/code_validator.dart';
 import 'package:fluffy_link/core/utils/file_utils.dart';
 import 'package:fluffy_link/models/link_model.dart';
@@ -103,119 +105,297 @@ class _StatsScreenState extends State<StatsScreen> {
 
     final link = _link;
     if (link == null) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Loading stats...'),
-            ],
-          ),
-        ),
-      );
+      return const _StatsLoading();
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Link stats',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 32),
-                  _LinkBox(url: link.shortUrl),
-                  const SizedBox(height: 24),
-                  _StatRow(label: 'Clicks', value: link.clickCount.toString()),
-                  const SizedBox(height: 12),
-                  _StatRow(
-                    label: 'Uploaded',
-                    value: _formatDate(link.createdAt.toLocal()),
-                  ),
-                  if (link.fileName != null) ...[
-                    const SizedBox(height: 12),
-                    _StatRow(label: 'Filename', value: link.fileName!),
-                  ],
-                  if (link.fileSize != null) ...[
-                    const SizedBox(height: 12),
-                    _StatRow(
-                      label: 'Size',
-                      value: FileUtils.formatBytes(link.fileSize!),
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return PageScaffold(
+      currentRoute: '/s/${widget.code}',
+      maxContentWidth: 560,
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spaceLg),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+
+                    // ── Header ──
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        gradient: AppTheme.primaryGradient,
+                        boxShadow: AppTheme.glowShadow(opacity: 0.35, blur: 20),
+                      ),
+                      child: const Icon(
+                        Icons.bar_chart_rounded,
+                        size: 26,
+                        color: Colors.white,
+                      ),
                     ),
-                  ],
-                  const SizedBox(height: 32),
-                  FilledButton.icon(
-                    onPressed: _copy,
-                    icon: Icon(_copied ? Icons.check : Icons.copy_outlined),
-                    label: Text(_copied ? 'Copied' : 'Copy link'),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Link Statistics',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Real-time analytics for your shared file',
+                      style: TextStyle(color: AppTheme.muted, fontSize: 14),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // ── Link URL display ──
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppTheme.glassCard().copyWith(
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.2),
+                        ),
+                        boxShadow: AppTheme.glowShadow(opacity: 0.05, blur: 16),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.link_rounded,
+                              size: 18,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              link.shortUrl,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 14,
+                                color: AppTheme.onSurface,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Stats grid ──
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cards = <Widget>[
+                          _StatCard(
+                            icon: Icons.touch_app_outlined,
+                            label: 'Total Clicks',
+                            value: link.clickCount.toString(),
+                            highlight: true,
+                          ),
+                          _StatCard(
+                            icon: Icons.calendar_today_outlined,
+                            label: 'Uploaded',
+                            value: _formatDate(link.createdAt.toLocal()),
+                          ),
+                          if (link.fileName != null)
+                            _StatCard(
+                              icon: Icons.insert_drive_file_outlined,
+                              label: 'Filename',
+                              value: link.fileName!,
+                            ),
+                          if (link.fileSize != null)
+                            _StatCard(
+                              icon: Icons.data_usage_outlined,
+                              label: 'Size',
+                              value: FileUtils.formatBytes(link.fileSize!),
+                            ),
+                        ];
+
+                        if (constraints.maxWidth > 400) {
+                          // 2-column grid
+                          final rows = <Widget>[];
+                          for (var i = 0; i < cards.length; i += 2) {
+                            if (i + 1 < cards.length) {
+                              rows.add(Row(
+                                children: [
+                                  Expanded(child: cards[i]),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: cards[i + 1]),
+                                ],
+                              ));
+                            } else {
+                              rows.add(Row(
+                                children: [
+                                  Expanded(child: cards[i]),
+                                  const SizedBox(width: 12),
+                                  const Expanded(child: SizedBox()),
+                                ],
+                              ));
+                            }
+                            if (i + 2 < cards.length) {
+                              rows.add(const SizedBox(height: 12));
+                            }
+                          }
+                          return Column(children: rows);
+                        }
+
+                        return Column(
+                          children: cards
+                              .expand((c) => [c, const SizedBox(height: 12)])
+                              .toList()
+                            ..removeLast(),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ── Copy button ──
+                    SizedBox(
+                      width: isMobile ? double.infinity : null,
+                      child: FilledButton.icon(
+                        onPressed: _copy,
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            _copied ? Icons.check_rounded : Icons.copy_outlined,
+                            key: ValueKey(_copied),
+                            size: 18,
+                          ),
+                        ),
+                        label: Text(_copied ? 'Copied!' : 'Copy link'),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    TextButton.icon(
+                      onPressed: () => context.go('/upload'),
+                      icon: const Icon(Icons.upload_file_outlined, size: 18),
+                      label: const Text('Upload another file'),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => context.go('/'),
+                      child: Text(
+                        'Back to home',
+                        style: TextStyle(color: AppTheme.mutedDim, fontSize: 13),
+                      ),
+                    ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _LinkBox extends StatelessWidget {
-  const _LinkBox({required this.url});
+// ═══════════════════════════════════════════════════════════════════════════
+// STAT CARD
+// ═══════════════════════════════════════════════════════════════════════════
 
-  final String url;
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.gradientCard(
+        borderColor: highlight ? AppTheme.primary.withValues(alpha: 0.35) : null,
+      ).copyWith(
+        boxShadow: highlight ? AppTheme.glowShadow(opacity: 0.12, blur: 18) : null,
       ),
-      child: Text(
-        url,
-        style: const TextStyle(fontFamily: 'monospace', fontSize: 15),
-        textAlign: TextAlign.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppTheme.mutedDim),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppTheme.mutedDim,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: highlight ? AppTheme.primary : AppTheme.onSurfaceBright,
+              fontSize: highlight ? 28 : 15,
+              fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
 }
 
-class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value});
+// ═══════════════════════════════════════════════════════════════════════════
+// LOADING STATE
+// ═══════════════════════════════════════════════════════════════════════════
 
-  final String label;
-  final String value;
+class _StatsLoading extends StatelessWidget {
+  const _StatsLoading();
 
   @override
   Widget build(BuildContext context) {
-    final mutedStyle = TextStyle(color: Colors.grey.shade600, fontSize: 14);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: mutedStyle),
-        Flexible(
-          child: Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis,
-          ),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: AppTheme.surface,
+                border: Border.all(color: AppTheme.border),
+                boxShadow: AppTheme.glowShadow(opacity: 0.1, blur: 20),
+              ),
+              child: const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Loading stats...',
+              style: TextStyle(color: AppTheme.muted),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NOT FOUND STATE
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _StatsNotFound extends StatelessWidget {
   const _StatsNotFound();
@@ -229,6 +409,20 @@ class _StatsNotFound extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.surface,
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Icon(
+                  Icons.link_off_rounded,
+                  size: 28,
+                  color: AppTheme.muted,
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'Link not found',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -236,7 +430,7 @@ class _StatsNotFound extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 "This link doesn't exist or may have expired.",
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: AppTheme.muted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

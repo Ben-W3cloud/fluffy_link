@@ -1,14 +1,42 @@
 import 'package:fluffy_link/app.dart';
+import 'package:fluffy_link/core/app_navbar.dart';
+import 'package:fluffy_link/core/constants.dart';
 import 'package:fluffy_link/models/link_model.dart';
 import 'package:fluffy_link/screens/home/widgets/success_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows the upload screen', (tester) async {
-    await tester.pumpWidget(const PermaLinkApp());
+  testWidgets('shows the landing screen and navigates to upload screen', (tester) async {
+    // Force a real-laptop viewport so the desktop navbar renders (the default
+    // 800x600 test surface triggers the < 900 mobile breakpoint and hides the
+    // navbar's "Start Uploading" CTA we want to tap).
+    await tester.binding.setSurfaceSize(const Size(1280, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    expect(find.text('Perma.link'), findsOneWidget);
+    await tester.pumpWidget(const PermaLinkApp());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Diagnostic
+    debugPrint('NavBar count: ${find.byType(AppNavBar).evaluate().length}');
+    debugPrint(
+      'Start Uploading count: ${find.text('Start Uploading').evaluate().length}',
+    );
+
+    // Verify Landing Screen elements
+    expect(
+      find.textContaining('PERMA', findRichText: true),
+      findsWidgets,
+    );
+    expect(find.text('Launch App'), findsOneWidget);
+    expect(find.text('Start Uploading'), findsWidgets);
+
+    // Navigate to Upload Screen via the navbar CTA
+    await tester.tap(find.text('Start Uploading').first);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100)); // allow route transition to complete
+
+    // Verify Upload Screen elements
     expect(find.text('Drop your file here'), findsOneWidget);
     expect(find.text('Browse files'), findsOneWidget);
     expect(
@@ -45,8 +73,12 @@ void main() {
       ),
     );
 
-    expect(find.text('https://perma.link/abc123'), findsOneWidget);
-    expect(find.text('https://perma.link/s/abc123'), findsOneWidget);
+    final baseUrl = AppConstants.appDomain.endsWith('/')
+        ? AppConstants.appDomain.substring(0, AppConstants.appDomain.length - 1)
+        : AppConstants.appDomain;
+
+    expect(find.text('$baseUrl/abc123'), findsOneWidget);
+    expect(find.text('$baseUrl/s/abc123'), findsOneWidget);
     expect(find.text('Share link'), findsOneWidget);
     expect(find.text('Stats link'), findsOneWidget);
   });

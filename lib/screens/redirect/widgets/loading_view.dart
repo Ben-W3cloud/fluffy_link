@@ -1,3 +1,4 @@
+import 'package:fluffy_link/core/theme.dart';
 import 'package:flutter/material.dart';
 
 class LoadingView extends StatelessWidget {
@@ -12,9 +13,27 @@ class LoadingView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(message),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.surface,
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.15),
+                ),
+                boxShadow: AppTheme.glowShadow(opacity: 0.1, blur: 20),
+              ),
+              child: const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              message,
+              style: TextStyle(color: AppTheme.muted, fontSize: 15),
+            ),
           ],
         ),
       ),

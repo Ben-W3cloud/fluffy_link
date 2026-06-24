@@ -1,3 +1,4 @@
+import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/core/utils/file_utils.dart';
 import 'package:fluffy_link/core/utils/web_share.dart';
 import 'package:fluffy_link/models/link_model.dart';
@@ -75,55 +76,110 @@ class _SuccessCardState extends State<SuccessCard> {
 
   @override
   Widget build(BuildContext context) {
-    final muted = TextStyle(color: Colors.grey.shade600, fontSize: 13);
     final meta = widget.metadata;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle_outline, color: Colors.green, size: 48),
-        const SizedBox(height: 16),
-        Text('Your link is ready', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 24),
-        _LinkBox(
-          label: 'Share link',
-          url: widget.link.shortUrl,
-          copied: _copiedUrl == widget.link.shortUrl,
-          onCopy: () => _copy(widget.link.shortUrl),
-        ),
-        const SizedBox(height: 12),
-        _LinkBox(
-          label: 'Stats link',
-          url: widget.link.statsUrl,
-          copied: _copiedUrl == widget.link.statsUrl,
-          onCopy: () => _copy(widget.link.statsUrl),
+        // Success icon
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF059669), Color(0xFF10B981)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                blurRadius: 28,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 28),
         ),
         const SizedBox(height: 20),
+        Text(
+          'Your link is ready',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Link boxes inside glassmorphic container
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: AppTheme.glassCard(),
+          child: Column(
+            children: [
+              _LinkBox(
+                label: 'Share link',
+                url: widget.link.shortUrl,
+                copied: _copiedUrl == widget.link.shortUrl,
+                onCopy: () => _copy(widget.link.shortUrl),
+              ),
+              const SizedBox(height: 16),
+              _LinkBox(
+                label: 'Stats link',
+                url: widget.link.statsUrl,
+                copied: _copiedUrl == widget.link.statsUrl,
+                onCopy: () => _copy(widget.link.statsUrl),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // Share buttons
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextButton.icon(
+            _ShareButton(
+              icon: Icons.share_outlined,
+              label: 'Twitter',
               onPressed: _shareTwitter,
-              icon: const Icon(Icons.share_outlined, size: 18),
-              label: const Text('Twitter'),
             ),
             if (isWebShareSupported) ...[
               const SizedBox(width: 8),
-              TextButton.icon(
+              _ShareButton(
+                icon: Icons.ios_share_outlined,
+                label: 'Share',
                 onPressed: _shareNative,
-                icon: const Icon(Icons.ios_share_outlined, size: 18),
-                label: const Text('Share'),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 16),
-        Text(meta.fileName, style: muted),
-        Text(
-          '${FileUtils.formatBytes(meta.fileSize)} · ${meta.mimeType}',
-          style: muted,
+
+        const SizedBox(height: 20),
+
+        // File metadata
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              _MetaRow(icon: Icons.insert_drive_file_outlined, text: meta.fileName),
+              const SizedBox(height: 4),
+              _MetaRow(
+                icon: Icons.data_usage_outlined,
+                text: '${FileUtils.formatBytes(meta.fileSize)} \u00B7 ${meta.mimeType}',
+              ),
+              const SizedBox(height: 4),
+              _MetaRow(
+                icon: Icons.access_time_outlined,
+                text: 'Uploaded ${_formatDate(meta.uploadedAt.toLocal())}',
+              ),
+            ],
+          ),
         ),
-        Text('Uploaded ${_formatDate(meta.uploadedAt.toLocal())}', style: muted),
+
         const SizedBox(height: 24),
         TextButton.icon(
           onPressed: widget.onReset,
@@ -155,32 +211,93 @@ class _LinkBox extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          style: const TextStyle(color: AppTheme.mutedDim, fontSize: 12),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(12),
+            color: AppTheme.surfaceAlt,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.border),
           ),
           child: Row(
             children: [
               Expanded(
                 child: Text(
                   url,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 15),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    color: AppTheme.onSurface,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(copied ? Icons.check : Icons.copy_outlined),
-                tooltip: copied ? 'Copied' : 'Copy link',
-                onPressed: onCopy,
+              GestureDetector(
+                onTap: onCopy,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    copied ? Icons.check_rounded : Icons.copy_outlined,
+                    key: ValueKey(copied),
+                    size: 18,
+                    color: copied ? AppTheme.primary : AppTheme.muted,
+                  ),
+                ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ShareButton extends StatelessWidget {
+  const _ShareButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        foregroundColor: AppTheme.muted,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      ),
+    );
+  }
+}
+
+class _MetaRow extends StatelessWidget {
+  const _MetaRow({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppTheme.mutedDim),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

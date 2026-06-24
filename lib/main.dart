@@ -1,9 +1,23 @@
+import 'dart:ui';
 import 'package:fluffy_link/app.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('FLUTTER ERROR: ${details.exception}');
+    print('FLUTTER ERROR TYPE: ${details.exception.runtimeType}');
+    print('STACK: ${details.stack}');
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    print('PLATFORM ERROR: $error');
+    print('PLATFORM ERROR TYPE: ${error.runtimeType}');
+    print('STACK: $stack');
+    return true;
+  };
 
   await _initializeSupabase();
   runApp(const PermaLinkApp());

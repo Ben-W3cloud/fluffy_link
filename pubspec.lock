@@ -188,12 +188,11 @@ packages:
   dartus:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "fix/web-safe-barrel"
-      resolved-ref: "9bf520da97a188812be9a0ed33061881c564bdb8"
-      url: "https://github.com/Ben-W3cloud/Dartus.git"
-    source: git
-    version: "0.2.0"
+      name: dartus
+      sha256: "5f3a2dceabd09bbdcefd872e694c5a30d13777e118c03085b4506f62a5b5d32a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
   dio:
     dependency: transitive
     description:

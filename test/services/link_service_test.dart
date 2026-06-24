@@ -1,3 +1,4 @@
+import 'package:fluffy_link/core/constants.dart';
 import 'package:fluffy_link/models/link_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,11 +15,15 @@ void main() {
       'created_at': createdAt.toIso8601String(),
     });
 
+    final baseUrl = AppConstants.appDomain.endsWith('/')
+        ? AppConstants.appDomain.substring(0, AppConstants.appDomain.length - 1)
+        : AppConstants.appDomain;
+
     expect(link.shortCode, 'abc123');
     expect(link.fileSize, 2048);
     expect(link.clickCount, 4);
-    expect(link.shortUrl, 'https://perma.link/abc123');
-    expect(link.statsUrl, 'https://perma.link/s/abc123');
+    expect(link.shortUrl, '$baseUrl/abc123');
+    expect(link.statsUrl, '$baseUrl/s/abc123');
     expect(
       link.walrusUrl,
       'https://aggregator.walrus-testnet.walrus.space/v1/blobs/blob-id',

@@ -1,7 +1,10 @@
 import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/screens/home/home_screen.dart';
+import 'package:fluffy_link/screens/landing/landing_screen.dart';
 import 'package:fluffy_link/screens/redirect/redirect_screen.dart';
 import 'package:fluffy_link/screens/stats/stats_screen.dart';
+import 'package:fluffy_link/screens/about/about_screen.dart';
+import 'package:fluffy_link/screens/docs/docs_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,10 +16,10 @@ final GoRouter appRouter = GoRouter(
         return StatsScreen(code: state.pathParameters['code']!);
       },
     ),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const HomeScreen(),
-    ),
+    GoRoute(path: '/upload', builder: (context, state) => const HomeScreen()),
+    GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
+    GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+    GoRoute(path: '/docs', builder: (context, state) => const DocsScreen()),
     GoRoute(
       path: '/:code',
       builder: (context, state) {
@@ -34,7 +37,7 @@ class PermaLinkApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Perma.link',
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );
@@ -51,6 +54,12 @@ class NotFoundScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(
+              Icons.link_off_rounded,
+              size: 48,
+              color: AppTheme.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
             Text(
               'Link not found',
               style: Theme.of(context).textTheme.titleLarge,
@@ -58,7 +67,7 @@ class NotFoundScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               "This link doesn't exist or may have expired.",
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.muted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

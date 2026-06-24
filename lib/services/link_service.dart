@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:fluffy_link/core/utils/code_generator.dart';
 import 'package:fluffy_link/models/link_model.dart';
@@ -22,8 +23,19 @@ class LinkService {
     String? fileName,
     int? fileSize,
   }) async {
+    developer.log(
+      'createLink called',
+      name: 'LinkService.createLink',
+      error: {'blobId': blobId, 'fileName': fileName, 'fileSize': fileSize},
+    );
     for (var attempt = 0; attempt < 3; attempt++) {
       final code = CodeGenerator.generate();
+
+      developer.log(
+        'Attempting to insert link row',
+        name: 'LinkService.createLink',
+        error: {'attempt': attempt + 1, 'code': code},
+      );
 
       try {
         final data = await _supabase
@@ -37,10 +49,31 @@ class LinkService {
             .select()
             .single();
 
+        developer.log(
+          'Link inserted',
+          name: 'LinkService.createLink',
+          error: data,
+        );
         return LinkModel.fromJson(data);
       } on PostgrestException catch (error) {
+        developer.log(
+          'PostgrestException during createLink',
+          name: 'LinkService.createLink',
+          error: {
+            'code': error.code,
+            'message': error.message,
+            'details': error.details,
+          },
+        );
         // PostgreSQL 23505 is unique_violation; retry with a new shortcode.
-        if (error.code == '23505' && attempt < 2) continue;
+        if (error.code == '23505' && attempt < 2) {
+          developer.log(
+            'Unique violation, retrying with new code',
+            name: 'LinkService.createLink',
+            error: {'attempt': attempt + 1},
+          );
+          continue;
+        }
         rethrow;
       }
     }
