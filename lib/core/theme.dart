@@ -24,14 +24,14 @@ class AppTheme {
 
   // ── Marblex-inspired palette ─────────────────────────────────────────
   // Deep dark backgrounds with violet/indigo primary
-  static const Color background  = Color(0xFF07071A); // very dark navy-black
-  static const Color surface     = Color(0xFF0D0D26); // dark navy surface
-  static const Color surfaceAlt  = Color(0xFF141436); // elevated surface
-  static const Color border      = Color(0xFF1E1E48); // purple-tinted border
+  static const Color background = Color(0xFF07071A); // very dark navy-black
+  static const Color surface = Color(0xFF0D0D26); // dark navy surface
+  static const Color surfaceAlt = Color(0xFF141436); // elevated surface
+  static const Color border = Color(0xFF1E1E48); // purple-tinted border
 
   // Brand: electric violet — Marblex signature
-  static const Color primary      = Color(0xFF7B5CF5); // electric violet
-  static const Color primaryDark  = Color(0xFF5B3EDB); // deeper violet
+  static const Color primary = Color(0xFF7B5CF5); // electric violet
+  static const Color primaryDark = Color(0xFF5B3EDB); // deeper violet
   static const Color primaryLight = Color(0xFF9B80FF); // lighter violet
 
   // Accent: electric cyan — contrast highlight
@@ -39,13 +39,13 @@ class AppTheme {
 
   // Semantic
   static const Color success = Color(0xFF10B981);
-  static const Color error   = Color(0xFFEF4444);
+  static const Color error = Color(0xFFEF4444);
 
   // Text
-  static const Color onSurface       = Color(0xFFCACBE8); // cool-white body text
+  static const Color onSurface = Color(0xFFCACBE8); // cool-white body text
   static const Color onSurfaceBright = Color(0xFFFFFFFF);
-  static const Color muted           = Color(0xFF8888AA); // muted blue-gray
-  static const Color mutedDim        = Color(0xFF5A5A7A); // dimmer
+  static const Color muted = Color(0xFF8888AA); // muted blue-gray
+  static const Color mutedDim = Color(0xFF5A5A7A); // dimmer
 
   // ── Gradients ────────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
@@ -123,90 +123,87 @@ class AppTheme {
       onError: Colors.white,
     ),
     scaffoldBackgroundColor: background,
-    textTheme: GoogleFonts.spaceGroteskTextTheme(
-      ThemeData.dark().textTheme,
-    ).copyWith(
-      // ── Display / Hero (Bebas Neue) ──
-      displayLarge: GoogleFonts.bebasNeue(
-        fontSize: 160,
-        fontWeight: FontWeight.w400,
-        color: onSurfaceBright,
-        height: 0.85,
-        letterSpacing: -1.0,
-      ),
-      displayMedium: GoogleFonts.bebasNeue(
-        fontSize: 96,
-        fontWeight: FontWeight.w400,
-        color: onSurfaceBright,
-        height: 0.9,
-      ),
-      // ── Section headings (Space Grotesk) ──
-      headlineLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 48,
-        fontWeight: FontWeight.w700,
-        color: onSurfaceBright,
-        height: 1.15,
-        letterSpacing: -0.5,
-      ),
-      headlineMedium: GoogleFonts.spaceGrotesk(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        color: onSurfaceBright,
-        height: 1.2,
-        letterSpacing: -0.3,
-      ),
-      headlineSmall: GoogleFonts.spaceGrotesk(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: onSurfaceBright,
-        letterSpacing: -0.2,
-      ),
-      titleLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: onSurfaceBright,
-      ),
-      titleMedium: GoogleFonts.spaceGrotesk(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: onSurface,
-      ),
-      bodyLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-      ),
-      bodyMedium: GoogleFonts.spaceGrotesk(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-      ),
-      bodySmall: GoogleFonts.spaceGrotesk(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: muted,
-      ),
-      labelLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: onSurfaceBright,
-      ),
-      // ── Mono labels / code / tags (Fira Code) ──
-      labelSmall: GoogleFonts.firaCode(
-        fontSize: 10,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 1.8,
-        color: muted,
-      ),
-    ),
+    textTheme: GoogleFonts.spaceGroteskTextTheme(ThemeData.dark().textTheme)
+        .copyWith(
+          // ── Display / Hero (Bebas Neue) ──
+          displayLarge: GoogleFonts.bebasNeue(
+            fontSize: 160,
+            fontWeight: FontWeight.w400,
+            color: onSurfaceBright,
+            height: 0.85,
+            letterSpacing: -1.0,
+          ),
+          displayMedium: GoogleFonts.bebasNeue(
+            fontSize: 96,
+            fontWeight: FontWeight.w400,
+            color: onSurfaceBright,
+            height: 0.9,
+          ),
+          // ── Section headings (Space Grotesk) ──
+          headlineLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 48,
+            fontWeight: FontWeight.w700,
+            color: onSurfaceBright,
+            height: 1.15,
+            letterSpacing: -0.5,
+          ),
+          headlineMedium: GoogleFonts.spaceGrotesk(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            color: onSurfaceBright,
+            height: 1.2,
+            letterSpacing: -0.3,
+          ),
+          headlineSmall: GoogleFonts.spaceGrotesk(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: onSurfaceBright,
+            letterSpacing: -0.2,
+          ),
+          titleLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: onSurfaceBright,
+          ),
+          titleMedium: GoogleFonts.spaceGrotesk(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: onSurface,
+          ),
+          bodyLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: onSurface,
+          ),
+          bodyMedium: GoogleFonts.spaceGrotesk(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: onSurface,
+          ),
+          bodySmall: GoogleFonts.spaceGrotesk(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: muted,
+          ),
+          labelLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: onSurfaceBright,
+          ),
+          // ── Mono labels / code / tags (Fira Code) ──
+          labelSmall: GoogleFonts.firaCode(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.8,
+            color: muted,
+          ),
+        ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: primary,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle: GoogleFonts.spaceGrotesk(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -227,9 +224,7 @@ class AppTheme {
         foregroundColor: primary,
         side: const BorderSide(color: primary, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle: GoogleFonts.spaceGrotesk(
           fontSize: 15,
           fontWeight: FontWeight.w600,

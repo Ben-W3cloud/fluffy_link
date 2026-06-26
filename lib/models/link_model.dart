@@ -33,7 +33,9 @@ class LinkModel {
 
   String get _baseUrl {
     final domain = AppConstants.appDomain;
-    return domain.endsWith('/') ? domain.substring(0, domain.length - 1) : domain;
+    return domain.endsWith('/')
+        ? domain.substring(0, domain.length - 1)
+        : domain;
   }
 
   String get shortUrl => '$_baseUrl/$shortCode';

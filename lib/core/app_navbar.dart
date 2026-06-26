@@ -14,7 +14,12 @@ class AppNavBar extends StatelessWidget {
     final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(isMobile ? 12 : 28, 12, isMobile ? 12 : 28, 8),
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 12 : 28,
+        12,
+        isMobile ? 12 : 28,
+        8,
+      ),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: isMobile ? 14 : 20,
@@ -78,11 +83,6 @@ class AppNavBar extends StatelessWidget {
                 isActive: currentRoute == '/about',
                 onTap: () => context.go('/about'),
               ),
-              _NavLink(
-                label: 'DOCS',
-                isActive: currentRoute == '/docs',
-                onTap: () => context.go('/docs'),
-              ),
               const SizedBox(width: 12),
             ],
             if (isMobile)
@@ -141,13 +141,6 @@ class AppNavBar extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 context.go('/about');
-              },
-            ),
-            _MobileNavItem(
-              label: 'DOCS',
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/docs');
               },
             ),
             _MobileNavItem(
