@@ -51,16 +51,17 @@ class AppNavBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: AppTheme.glowShadow(opacity: 0.3, blur: 12),
                     ),
-                    child: const Icon(
-                      Icons.link_rounded,
-                      color: Color(0xFF04241F),
-                      size: 16,
+                    child: Image.asset(
+                      'assets/logi.png',
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(width: 10),
