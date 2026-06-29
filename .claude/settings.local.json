@@ -5,7 +5,9 @@
       "Bash(flutter analyze *)",
       "WebSearch",
       "Bash(del *)",
-      "Bash(xargs grep -l \"dash.png\\\\|caveat\\\\|Caveat\")"
+      "Bash(xargs grep -l \"dash.png\\\\|caveat\\\\|Caveat\")",
+      "Bash(dart format *)",
+      "Bash(flutter test *)"
     ]
   }
 }

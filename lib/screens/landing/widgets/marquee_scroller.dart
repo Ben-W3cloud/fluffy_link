@@ -82,7 +82,8 @@ class _MarqueeScrollerState extends State<MarqueeScroller>
               final xOffset = -loopWidth * _controller.value;
               final yOffset = isMobile
                   ? 0.0
-                  : math.sin(_controller.value * 2 * math.pi) * widget.diagonalAmplitude;
+                  : math.sin(_controller.value * 2 * math.pi) *
+                        widget.diagonalAmplitude;
 
               return OverflowBox(
                 minWidth: loopWidth * 2,

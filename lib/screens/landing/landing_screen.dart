@@ -5,7 +5,6 @@ import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/screens/landing/widgets/network_background.dart';
 import 'package:fluffy_link/screens/landing/widgets/marquee_scroller.dart';
 import 'package:fluffy_link/screens/landing/widgets/staggered_fade_in.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,17 +35,12 @@ class _LandingScreenState extends State<LandingScreen> {
   Future<void> _scrollToSection(GlobalKey key) async {
     final context = key.currentContext;
     if (context == null) return;
-
     await Scrollable.ensureVisible(
       context,
       duration: const Duration(milliseconds: 850),
       curve: Curves.easeInOutCubic,
       alignment: 0.03,
     );
-  }
-
-  Future<void> _scrollToWorkflow() async {
-    await _scrollToSection(_workflowKey);
   }
 
   @override
@@ -69,9 +63,8 @@ class _LandingScreenState extends State<LandingScreen> {
               children: [
                 _HeroSection(
                   scrollOffset: _scrollOffset,
-                  onExplore: _scrollToWorkflow,
+                  onExplore: () => _scrollToSection(_workflowKey),
                 ),
-                _SlantedTransition(),
                 _ScrollReveal(
                   key: _whyKey,
                   scrollController: _scrollController,
@@ -111,63 +104,81 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 }
 
-class _HeroSection extends StatefulWidget {
+// ═══════════════════════════════════════════════════════════════════════════
+// HERO SECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _HeroSection extends StatelessWidget {
   const _HeroSection({required this.scrollOffset, required this.onExplore});
 
-  final ValueListenable<double> scrollOffset;
+  final ValueNotifier<double> scrollOffset;
   final VoidCallback onExplore;
 
-  @override
-  State<_HeroSection> createState() => _HeroSectionState();
-}
-
-class _HeroSectionState extends State<_HeroSection> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 700;
-    final reducedMotion = MediaQuery.of(context).disableAnimations;
-    final heroHeight = math.max(size.height * 0.96, isMobile ? 820.0 : 780.0);
+    final heroHeight = math.max(size.height * 0.96, isMobile ? 860.0 : 800.0);
 
     return SizedBox(
       height: heroHeight,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Parallax background — only this subtree rebuilds with scroll.
+          // Dot-grid background with parallax
           Positioned.fill(
             child: RepaintBoundary(
               child: ValueListenableBuilder<double>(
-                valueListenable: widget.scrollOffset,
-                builder: (context, scroll, child) {
-                  final parallax = reducedMotion ? 0.0 : scroll * 0.18;
-                  return Transform.translate(
-                    offset: Offset(0, parallax),
-                    child: child,
-                  );
-                },
+                valueListenable: scrollOffset,
+                builder: (_, scroll, child) => Transform.translate(
+                  offset: Offset(0, scroll * 0.18),
+                  child: child,
+                ),
                 child: const Opacity(opacity: 0.55, child: NetworkBackground()),
               ),
             ),
           ),
-          // Gradient mesh overlay — cinematic depth effect.
-          Positioned.fill(
+          // Radial teal glow overlay top-left
+          Positioned(
+            left: -160,
+            top: size.height * 0.20,
             child: IgnorePointer(
-              child: DecoratedBox(
+              child: Container(
+                width: 400,
+                height: 400,
                 decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    center: const Alignment(-0.3, -0.4),
-                    radius: 1.1,
                     colors: [
-                      AppTheme.primary.withValues(alpha: 0.22),
-                      AppTheme.background.withValues(alpha: 0.0),
+                      AppTheme.primary.withValues(alpha: 0.20),
+                      Colors.transparent,
                     ],
                   ),
                 ),
               ),
             ),
           ),
-          // Bottom fade into next section.
+          // Radial teal glow bottom-right
+          Positioned(
+            right: -160,
+            bottom: 40,
+            child: IgnorePointer(
+              child: Container(
+                width: 500,
+                height: 500,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.primaryDark.withValues(alpha: 0.10),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Bottom fade
           Positioned(
             left: 0,
             right: 0,
@@ -188,32 +199,30 @@ class _HeroSectionState extends State<_HeroSection> {
               ),
             ),
           ),
-          // Center hero content — only the wrapping transform listens to scroll.
+          // Hero content with scroll-fade
           Align(
             alignment: Alignment.center,
             child: RepaintBoundary(
               child: ValueListenableBuilder<double>(
-                valueListenable: widget.scrollOffset,
-                builder: (context, scroll, child) {
+                valueListenable: scrollOffset,
+                builder: (_, scroll, child) {
                   final progress = (scroll / heroHeight).clamp(0.0, 1.0);
-                  final heroOpacity = 1.0 - (progress * 0.34);
-                  final heroScale = 1.0 - (progress * 0.045);
                   return Opacity(
-                    opacity: heroOpacity,
-                    child: Transform.scale(scale: heroScale, child: child),
+                    opacity: (1.0 - progress * 0.4).clamp(0.0, 1.0),
+                    child: Transform.scale(
+                      scale: 1.0 - progress * 0.04,
+                      child: child,
+                    ),
                   );
                 },
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     isMobile ? 20 : 48,
-                    isMobile ? 142 : 118,
+                    isMobile ? 148 : 118,
                     isMobile ? 20 : 48,
-                    isMobile ? 44 : 36,
+                    isMobile ? 28 : 20,
                   ),
-                  child: _HeroCopy(
-                    isMobile: isMobile,
-                    onExplore: widget.onExplore,
-                  ),
+                  child: _HeroCopy(isMobile: isMobile, onExplore: onExplore),
                 ),
               ),
             ),
@@ -236,100 +245,159 @@ class _HeroCopy extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // ── Status badge ──
         StaggeredFadeIn(
           delay: const Duration(milliseconds: 80),
-          child: _HeroBadge(compact: isMobile),
+          child: _StatusBadge(),
         ),
+        const SizedBox(height: 20),
+
+        // ── Headline ──
         StaggeredFadeIn(
-          delay: const Duration(milliseconds: 180),
-          child: Padding(
-            padding: EdgeInsets.only(top: isMobile ? 12 : 16),
+          delay: const Duration(milliseconds: 200),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 780),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontSize: isMobile ? 36 : 64,
+                  fontWeight: FontWeight.w900,
+                  height: 1.05,
+                  letterSpacing: -1.0,
+                  color: AppTheme.onSurfaceBright,
+                ),
+                children: [
+                  const TextSpan(text: 'Short links.\n'),
+                  TextSpan(
+                    text: 'Permanent',
+                    style: TextStyle(
+                      foreground: Paint()
+                        ..shader = const LinearGradient(
+                          colors: [AppTheme.primary, AppTheme.primaryLight],
+                        ).createShader(const Rect.fromLTWH(0, 0, 400, 80)),
+                    ),
+                  ),
+                  const TextSpan(text: ' files.'),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: isMobile ? 18 : 24),
+
+        // ── Subtitle ──
+        StaggeredFadeIn(
+          delay: const Duration(milliseconds: 400),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
             child: Text(
-              'Permanent links\nfor permanent files',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontSize: isMobile ? 30 : 48,
-                fontWeight: FontWeight.w900,
-                height: 1.02,
-                letterSpacing: 0,
+              'Upload any file. Get a short link. Share it everywhere.\nStored on Walrus — decentralized, permanent, unstoppable.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.muted,
+                fontSize: isMobile ? 15 : 18,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ),
           ),
         ),
+        SizedBox(height: isMobile ? 28 : 36),
+
+        // ── CTA buttons ──
         StaggeredFadeIn(
-          delay: const Duration(milliseconds: 500),
-          child: Padding(
-            padding: EdgeInsets.only(top: isMobile ? 18 : 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 620),
-              child: Text(
-                'Stop sharing raw blob IDs. Upload any file to Walrus and get a clean, memorable short link that redirects to decentralized storage — forever.',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.74),
-                  fontSize: isMobile ? 16 : 19,
-                  fontWeight: FontWeight.w400,
-                  height: 1.48,
+          delay: const Duration(milliseconds: 600),
+          child: Wrap(
+            spacing: 14,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              FilledButton.icon(
+                onPressed: () => context.go('/upload'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: const Color(0xFF04241F),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 24 : 32,
+                    vertical: isMobile ? 14 : 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
                 ),
-                textAlign: TextAlign.center,
+                icon: const Icon(Icons.upload_rounded, size: 18),
+                label: Text(
+                  'Upload a file',
+                  style: TextStyle(
+                    fontSize: isMobile ? 15 : 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onExplore,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.onSurface,
+                  side: BorderSide(color: AppTheme.border),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 24 : 32,
+                    vertical: isMobile ? 14 : 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.keyboard_double_arrow_down_rounded,
+                  size: 18,
+                ),
+                label: Text(
+                  'See how it works',
+                  style: TextStyle(
+                    fontSize: isMobile ? 15 : 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: isMobile ? 24 : 32),
+
+        // ── Demo card ──
+        StaggeredFadeIn(
+          delay: const Duration(milliseconds: 800),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: isMobile ? 340 : 520),
+            child: const _DemoCard(),
+          ),
+        ),
+
+        // ── Scroll indicator ──
+        const SizedBox(height: 16),
+        Column(
+          children: [
+            Text(
+              'SCROLL',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppTheme.muted,
+                letterSpacing: 3,
+                fontSize: 9,
               ),
             ),
-          ),
-        ),
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 720),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 36),
-            child: Wrap(
-              spacing: 16,
-              runSpacing: 14,
-              alignment: WrapAlignment.center,
-              children: [
-                FilledButton.icon(
-                  onPressed: () => context.go('/upload'),
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                  label: const Text('Start Shortening'),
-                  style: FilledButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 28 : 44,
-                      vertical: isMobile ? 16 : 22,
-                    ),
-                    textStyle: TextStyle(
-                      fontSize: isMobile ? 16 : 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            const SizedBox(height: 6),
+            Container(
+              width: 1,
+              height: 32,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppTheme.primary, Colors.transparent],
                 ),
-                OutlinedButton.icon(
-                  onPressed: onExplore,
-                  icon: const Icon(
-                    Icons.keyboard_double_arrow_down_rounded,
-                    size: 20,
-                  ),
-                  label: const Text('See How It Works'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 28 : 44,
-                      vertical: isMobile ? 16 : 22,
-                    ),
-                    textStyle: TextStyle(
-                      fontSize: isMobile ? 16 : 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 32),
-        Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          alignment: WrapAlignment.center,
-          children: const [
-            _AnimatedStat(target: 70, label: 'FILES STORED'),
-            _AnimatedStat(target: 100, label: 'DECENTRALIZED'),
-            _AnimatedStat(target: 5, label: 'EASE OF ACCESS'),
           ],
         ),
       ],
@@ -337,33 +405,41 @@ class _HeroCopy extends StatelessWidget {
   }
 }
 
-class _HeroBadge extends StatelessWidget {
-  const _HeroBadge({required this.compact});
-
-  final bool compact;
-
+class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 12 : 14,
-        vertical: compact ? 8 : 9,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppTheme.surface.withValues(alpha: 0.78),
+        color: AppTheme.primary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.26)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.link_rounded, size: 16, color: AppTheme.accent),
+          _PulsingDot(),
           const SizedBox(width: 8),
           Text(
-            'FILE LINKS FOR WALRUS',
+            'Running on Walrus testnet',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
-              fontWeight: FontWeight.w800,
+              color: AppTheme.muted,
+              fontSize: 11,
+              letterSpacing: 0.5,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            width: 1,
+            height: 12,
+            color: AppTheme.border,
+          ),
+          Text(
+            'v1.0',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppTheme.muted,
+              fontSize: 11,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -372,117 +448,236 @@ class _HeroBadge extends StatelessWidget {
   }
 }
 
-class _AnimatedStat extends StatefulWidget {
-  const _AnimatedStat({required this.target, required this.label, this.duration = const Duration(milliseconds: 1500)});
-
-  final int target;
-  final String label;
-  final Duration duration;
-
+class _PulsingDot extends StatefulWidget {
   @override
-  State<_AnimatedStat> createState() => _AnimatedStatState();
+  State<_PulsingDot> createState() => _PulsingDotState();
 }
 
-class _AnimatedStatState extends State<_AnimatedStat> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<int> _countAnimation;
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
-      duration: widget.duration,
-    );
-    
-    _countAnimation = IntTween(begin: 0, end: widget.target).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _controller.forward();
-    });
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppTheme.primary.withValues(alpha: 0.5 + _anim.value * 0.5),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Demo card (mock terminal) ─────────────────────────────────────────────
+
+class _DemoCard extends StatelessWidget {
+  const _DemoCard();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: 132,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppTheme.border),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primary.withValues(alpha: 0.08),
+            AppTheme.background.withValues(alpha: 0.6),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
+        boxShadow: AppTheme.glowShadow(opacity: 0.20, blur: 60),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AnimatedBuilder(
-            animation: _countAnimation,
-            builder: (context, child) {
-              return Text(
-                '${_countAnimation.value}${widget.target > 100 ? '%' : widget.target == 5 ? '/5' : '+'}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
+          // Window chrome
+          Row(
+            children: [
+              _dot(const Color(0xFFF87171)),
+              const SizedBox(width: 6),
+              _dot(const Color(0xFFFBBF24)),
+              const SizedBox(width: 6),
+              _dot(const Color(0xFF4ADE80)),
+              const Spacer(),
+              Text(
+                'perma.link · upload complete',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppTheme.muted,
+                  fontSize: 10,
                 ),
-              );
-            },
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 14),
+          _TerminalRow(
+            label: 'file:',
+            value: 'thesis_v3_final.pdf',
+            context: context,
+          ),
+          const SizedBox(height: 8),
+          _TerminalRow(
+            label: 'blob:',
+            value: 'wAtcbEtCYyCX2gPcAv6z84NL...',
+            muted: true,
+            context: context,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'link: ',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  color: AppTheme.muted,
+                ),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.primaryLight],
+                ).createShader(bounds),
+                child: const Text(
+                  'perma.link/xk4r',
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _TerminalRow(
+            label: 'hits:',
+            value: '1,284',
+            context: context,
+            suffix: '  ↑ 12% this week',
+          ),
+          const SizedBox(height: 12),
+          Container(height: 1, color: AppTheme.border),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _PulsingDot(),
+              const SizedBox(width: 8),
+              Text(
+                'stored on ',
+                style: TextStyle(fontSize: 11, color: AppTheme.muted),
+              ),
+              Text(
+                'Walrus',
+                style: const TextStyle(fontSize: 11, color: AppTheme.primary),
+              ),
+              const Spacer(),
+              Text(
+                '#0001284',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: AppTheme.muted,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot(Color color) => Container(
+    width: 11,
+    height: 11,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: color.withValues(alpha: 0.7),
+    ),
+  );
+}
+
+class _TerminalRow extends StatelessWidget {
+  const _TerminalRow({
+    required this.label,
+    required this.value,
+    required this.context,
+    this.muted = false,
+    this.suffix,
+  });
+
+  final String label;
+  final String value;
+  final BuildContext context;
+  final bool muted;
+  final String? suffix;
+
+  @override
+  Widget build(BuildContext _) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          '$label ',
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 13,
+            color: AppTheme.muted,
+          ),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 13,
+              color: muted ? AppTheme.muted : AppTheme.onSurfaceBright,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (suffix != null)
           Text(
-            widget.label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white54,
-              letterSpacing: 1.2,
+            suffix!,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: AppTheme.muted,
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _SlantedTransition extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 110,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipPath(
-              clipper: _SlantedClipper(),
-              child: Container(color: AppTheme.background),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SlantedClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..moveTo(0, size.height * 0.82)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// WHY SECTION
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _WhySection extends StatelessWidget {
   const _WhySection();
@@ -491,24 +686,29 @@ class _WhySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 760;
-    final pillars = const [
-      _AboutPillar(
-        icon: Icons.link_off_rounded,
-        title: 'Blob IDs aren\'t shareable',
+
+    final cards = const [
+      _WhyCard(
+        svgPath: Icons.bar_chart_rounded,
+        tagLabel: 'THE GAP',
+        title: "Blob IDs aren't URLs",
         description:
-            'No one remembers wAtcbEtCYyCX2gPc... Short links are universal.',
+            'Walrus blob identifiers are cryptographic hashes — durable on chain, invisible to friends. Nobody clicks a 32-character token.',
       ),
-      _AboutPillar(
-        icon: Icons.public_rounded,
-        title: 'Files should outlive feeds',
+      _WhyCard(
+        svgPath: Icons.check_circle_outline_rounded,
+        tagLabel: 'THE FIX',
+        title: 'Four characters, forever',
         description:
-            'Decentralized storage means your files persist even when platforms disappear.',
+            'We issue a short code — perma.link/xk4r — that resolves to your Walrus blob. Memorable. Shareable. Permanent.',
+        accentText: 'perma.link/xk4r',
       ),
-      _AboutPillar(
-        icon: Icons.query_stats_rounded,
-        title: 'Sharing needs feedback',
+      _WhyCard(
+        svgPath: Icons.location_on_outlined,
+        tagLabel: 'THE PROMISE',
+        title: 'No server, no expiry',
         description:
-            'Track clicks, monitor engagement, and know who\'s accessing your files.',
+            'The file lives on Walrus. The code lives on chain. There\'s no backend you need to trust. Your link won\'t die because we shut down.',
       ),
     ];
 
@@ -522,199 +722,203 @@ class _WhySection extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
-          child: isMobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _WhyCopy(),
-                    const SizedBox(height: 30),
-                    ...pillars.map(
-                      (pillar) => Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: pillar,
-                      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              const _SectionTag(label: 'WHY THIS EXISTS'),
+              const SizedBox(height: 20),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: RichText(
+                  text: TextSpan(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: isMobile ? 28 : 48,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
                     ),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Expanded(flex: 9, child: _WhyCopy()),
-                    const SizedBox(width: 44),
-                    Expanded(
-                      flex: 10,
-                      child: Column(
-                        children: pillars
-                            .map(
-                              (pillar) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: pillar,
-                              ),
-                            )
-                            .toList(),
+                    children: [
+                      const TextSpan(text: 'Walrus gives you permanence.\n'),
+                      TextSpan(
+                        text: 'We give you ',
+                        style: TextStyle(color: AppTheme.muted),
                       ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WhyCopy extends StatelessWidget {
-  const _WhyCopy();
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 760;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'WHY PERMA.LINK',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppTheme.primary,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 4,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Raw blob IDs\naren\'t shareable',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontSize: isMobile ? 32 : 48,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0,
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          'Walrus gives you permanent, decentralized file storage — but those 40-character blob IDs aren\'t something you\'d put in a tweet, a resume, or an email signature. Perma.link bridges the gap between decentralized permanence and human-friendly sharing.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Colors.white.withValues(alpha: 0.72),
-            height: 1.65,
-          ),
-        ),
-        const SizedBox(height: 28),
-        Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          children: const [
-            _AboutMetric(value: '01', label: 'UPLOAD'),
-            _AboutMetric(value: '02', label: 'SHORTEN'),
-            _AboutMetric(value: '03', label: 'SHARE'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _AboutMetric extends StatelessWidget {
-  const _AboutMetric({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 116,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceAlt.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-              fontSize: 34,
-              color: AppTheme.accent,
-              height: 0.9,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white60,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AboutPillar extends StatelessWidget {
-  const _AboutPillar({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(
-                color: AppTheme.primary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: Icon(icon, color: AppTheme.primary),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.muted,
-                    height: 1.55,
+                      WidgetSpan(
+                        child: ShaderMask(
+                          shaderCallback: (b) => const LinearGradient(
+                            colors: [AppTheme.primary, AppTheme.primaryLight],
+                          ).createShader(b),
+                          child: Text(
+                            'shareability',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  fontSize: isMobile ? 28 : 48,
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.white,
+                                  height: 1.15,
+                                ),
+                          ),
+                        ),
+                      ),
+                      TextSpan(
+                        text: '.',
+                        style: TextStyle(color: AppTheme.muted),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Text(
+                  'Walrus is brilliant decentralized storage — your files live on a distributed network, permanent and tamper-proof. But the blob IDs it spits out aren\'t built for humans. Perma.link bridges that gap.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.muted,
+                    height: 1.65,
+                    fontSize: isMobile ? 14 : 16,
+                  ),
+                ),
+              ),
+              SizedBox(height: isMobile ? 32 : 52),
+              // Cards
+              if (isMobile)
+                Column(
+                  children: cards
+                      .map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: c,
+                        ),
+                      )
+                      .toList(),
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: cards
+                      .map(
+                        (c) => Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: c,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+class _WhyCard extends StatefulWidget {
+  const _WhyCard({
+    required this.svgPath,
+    required this.tagLabel,
+    required this.title,
+    required this.description,
+    this.accentText,
+  });
+
+  final IconData svgPath;
+  final String tagLabel;
+  final String title;
+  final String description;
+  final String? accentText;
+
+  @override
+  State<_WhyCard> createState() => _WhyCardState();
+}
+
+class _WhyCardState extends State<_WhyCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.all(28),
+        transform: _hovered
+            ? Matrix4.translationValues(0, -4, 0)
+            : Matrix4.identity(),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withValues(alpha: _hovered ? 0.04 : 0.02),
+              Colors.transparent,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+          border: Border.all(
+            color: _hovered
+                ? AppTheme.primary.withValues(alpha: 0.3)
+                : AppTheme.border,
+          ),
+          boxShadow: _hovered
+              ? AppTheme.glowShadow(opacity: 0.12, blur: 30)
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Icon(widget.svgPath, color: AppTheme.primary, size: 22),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.tagLabel,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppTheme.primary,
+                letterSpacing: 1.5,
+                fontSize: 10,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.description,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.muted,
+                height: 1.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FEATURES SECTION
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _FeaturesSection extends StatelessWidget {
   const _FeaturesSection();
@@ -733,78 +937,132 @@ class _FeaturesSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _SectionHeader(
-              eyebrow: 'FEATURES',
-              title: 'Everything you need,\nnothing you don\'t',
-              subtitle:
-                  'Upload, store, shorten, track, and redirect through one fast Walrus-backed flow.',
-              compact: isMobile,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 48),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 840),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _SectionTag(label: 'FEATURE SHOWCASE'),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: RichText(
+                            text: TextSpan(
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    fontSize: isMobile ? 28 : 46,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                  ),
+                              children: [
+                                const TextSpan(text: 'Built to replace the\n'),
+                                WidgetSpan(
+                                  child: ShaderMask(
+                                    shaderCallback: (b) => const LinearGradient(
+                                      colors: [
+                                        AppTheme.primary,
+                                        AppTheme.primaryLight,
+                                      ],
+                                    ).createShader(b),
+                                    child: Text(
+                                      'bit.lys of the world.',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineMedium
+                                          ?.copyWith(
+                                            fontSize: isMobile ? 28 : 46,
+                                            fontWeight: FontWeight.w900,
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.white,
+                                            height: 1.1,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (!isMobile) const SizedBox(width: 32),
+                        if (!isMobile)
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 260),
+                            child: Text(
+                              'Hover any card for the full story. The carousel loops continuously — pause it anytime.',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppTheme.muted),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-            SizedBox(height: isMobile ? 34 : 56),
+            SizedBox(height: isMobile ? 32 : 52),
+            // Auto-scrolling carousel
             RepaintBoundary(
               child: Transform.rotate(
                 angle: isMobile ? 0 : -2.2 * math.pi / 180,
                 child: Transform.scale(
                   scale: isMobile ? 1 : 1.06,
                   child: SizedBox(
-                    height: isMobile ? 320 : 390,
+                    height: isMobile ? 340 : 400,
                     child: MarqueeScroller(
                       duration: const Duration(seconds: 34),
-                      itemExtent: isMobile ? 292 : 332,
+                      itemExtent: isMobile ? 280 : 330,
                       children: const [
                         _FeatureCard(
-                          tag: 'UPLOAD',
-                          title: 'Drop Any File',
-                          description:
-                              'Choose a file and hand it to the Walrus-backed upload flow.',
-                          number: '01',
-                          icon: Icons.upload_file_outlined,
-                          accent: AppTheme.primary,
-                        ),
-                        _FeatureCard(
-                          tag: 'WALRUS',
+                          tag: 'BLOB STORAGE',
                           title: 'Blob Storage',
-                          description:
-                              'Store the file as a content blob instead of hiding it behind a private server.',
-                          number: '02',
+                          subtitle:
+                              'Files live on Walrus\' decentralized network.',
+                          deepDive:
+                              'Every file is encoded and dispersed across Walrus\' network of storage nodes using erasure coding. No single server holds your file — it\'s reconstructed on demand from redundant shards.',
+                          number: '01 / 05',
                           icon: Icons.dns_outlined,
-                          accent: AppTheme.accent,
                         ),
                         _FeatureCard(
-                          tag: 'LINK',
+                          tag: 'SHORT URL',
                           title: 'Short URL',
-                          description:
-                              'Convert the blob route into a clean link people can actually remember.',
-                          number: '03',
+                          subtitle: 'Four characters resolve to any blob.',
+                          deepDive:
+                              'Perma.link maps a human-readable 4-char code to the underlying Walrus blob. The mapping is stored on the Sui chain — verifiable and tamper-resistant. Codes are reserved forever.',
+                          number: '02 / 05',
                           icon: Icons.link_rounded,
-                          accent: AppTheme.primary,
                         ),
                         _FeatureCard(
-                          tag: 'STATS',
+                          tag: 'LIVE ANALYTICS',
                           title: 'Live Analytics',
-                          description:
-                              'Check link activity from the share page without adding heavy account friction.',
-                          number: '04',
+                          subtitle:
+                              'Hits, referrers, devices — on each file page.',
+                          deepDive:
+                              'Every /:code page doubles as a stats dashboard. See clicks over time, top referrers, and device breakdowns. Analytics are privacy-first: aggregated and non-identifying.',
+                          number: '03 / 05',
                           icon: Icons.bar_chart_rounded,
-                          accent: AppTheme.accent,
                         ),
                         _FeatureCard(
-                          tag: 'ROUTE',
+                          tag: 'FAST REDIRECT',
                           title: 'Fast Redirect',
-                          description:
-                              'Send visitors straight to the stored file through a simple permanent route.',
-                          number: '05',
+                          subtitle:
+                              'Sub-second code resolution, straight to blob.',
+                          deepDive:
+                              'Edge workers resolve your short code in under 200ms by reading the on-chain index. No cold starts, no database round trips. Cached resolution means repeat visits are near-instant.',
+                          number: '04 / 05',
                           icon: Icons.bolt_outlined,
-                          accent: AppTheme.primary,
                         ),
                         _FeatureCard(
-                          tag: 'SECURITY',
-                          title: 'Decentralized',
-                          description:
-                              'No single point of failure. Files distributed across the Walrus network.',
-                          number: '06',
-                          icon: Icons.security_rounded,
-                          accent: AppTheme.accent,
+                          tag: 'DROP ANY FILE',
+                          title: 'Drop Any File',
+                          subtitle: 'PDFs, images, zips — anything under 10MB.',
+                          deepDive:
+                              'Perma.link accepts any file type up to 10MB. Browsers stream your file directly to Walrus via the Dartus SDK — we never touch your bytes on a server. Drag, drop, done.',
+                          number: '05 / 05',
+                          icon: Icons.upload_file_outlined,
                         ),
                       ],
                     ),
@@ -819,6 +1077,224 @@ class _FeaturesSection extends StatelessWidget {
   }
 }
 
+class _FeatureCard extends StatefulWidget {
+  const _FeatureCard({
+    required this.tag,
+    required this.title,
+    required this.subtitle,
+    required this.deepDive,
+    required this.number,
+    required this.icon,
+  });
+
+  final String tag;
+  final String title;
+  final String subtitle;
+  final String deepDive;
+  final String number;
+  final IconData icon;
+
+  @override
+  State<_FeatureCard> createState() => _FeatureCardState();
+}
+
+class _FeatureCardState extends State<_FeatureCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _slide;
+  bool _hovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
+    _slide = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onHover(bool h) {
+    setState(() => _hovered = h);
+    if (h) {
+      _ctrl.forward();
+    } else {
+      _ctrl.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return RepaintBoundary(
+      child: MouseRegion(
+        onEnter: (_) => _onHover(true),
+        onExit: (_) => _onHover(false),
+        child: Container(
+          width: isMobile ? 220 : 260,
+          height: isMobile ? 320 : 360,
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0F1A24), Color(0xFF070B10)],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Stack(
+            children: [
+              // ── Front layer ──
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 280),
+                opacity: _hovered ? 0.15 : 1.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(26),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _TagChip(label: widget.tag),
+                          Text(
+                            widget.number,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: AppTheme.muted, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Center(
+                        child: Icon(
+                          widget.icon,
+                          size: isMobile ? 80 : 96,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        widget.title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.subtitle,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: AppTheme.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // ── Deep-dive overlay (slides up from bottom) ──
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _slide,
+                  builder: (_, child) => FractionalTranslation(
+                    translation: Offset(0, 1.0 - _slide.value),
+                    child: child,
+                  ),
+                  child: Container(
+                  padding: const EdgeInsets.all(26),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppTheme.primary.withValues(alpha: 0.10),
+                        const Color(0xFF070B10),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _TagChip(label: 'DEEP DIVE'),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Flexible(
+                        child: Text(
+                          widget.deepDive,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppTheme.muted, height: 1.6),
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                      const Spacer(),
+                      Divider(color: AppTheme.primary.withValues(alpha: 0.15)),
+                      const SizedBox(height: 6),
+                      Text(
+                        '↑ hover to explore',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppTheme.muted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ),
+              ),
+              // Top teal border glow on hover
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: _hovered ? 1.0 : 0.0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.primary,
+                          Colors.transparent,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(18),
+                        topRight: Radius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WORKFLOW / PROTOCOL SECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
 class _WorkflowSection extends StatelessWidget {
   const _WorkflowSection();
 
@@ -826,29 +1302,30 @@ class _WorkflowSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 760;
+
     final cards = const [
       _ProtocolCard(
         step: '01',
-        title: 'Upload',
         label: 'CLIENT_INPUT',
+        title: 'Upload',
         description:
-            'Select a file under the current size limit and send bytes to the upload pipeline.',
+            'Select any file under 10MB. The client streams it directly to the Walrus publisher nodes via the Dartus SDK. Your bytes never pass through a Perma.link server.',
         icon: Icons.file_upload_outlined,
       ),
       _ProtocolCard(
         step: '02',
-        title: 'Store',
         label: 'WALRUS_BLOB',
+        title: 'Store',
         description:
-            'The blob is stored on Walrus and resolved into a durable content identifier.',
+            'Walrus returns a certified blob ID — a long cryptographic identifier anchored on-chain. Perma.link writes a short code → blob ID mapping to the resolver contract.',
         icon: Icons.storage_outlined,
       ),
       _ProtocolCard(
         step: '03',
-        title: 'Share',
         label: 'PERMA_ROUTE',
+        title: 'Share',
         description:
-            'Perma.link creates a short URL that redirects users to the stored file.',
+            'Hand out perma.link/xk4r. Visitors hit our edge, which resolves the code and streams the blob. Every visit tallies on the live stats page.',
         icon: Icons.share_outlined,
       ),
     ];
@@ -860,116 +1337,265 @@ class _WorkflowSection extends StatelessWidget {
         horizontal: isMobile ? 20 : 48,
         vertical: isMobile ? 78 : 118,
       ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
-        child: Column(
-          children: [
-            _SectionHeader(
-              eyebrow: 'HOW IT WORKS',
-              title: 'Three moves from file to forever',
-              subtitle:
-                  'The landing page stays cinematic, but the upload flow remains simple and direct.',
-              compact: isMobile,
-            ),
-            SizedBox(height: isMobile ? 34 : 54),
-            isMobile
-                ? Column(
-                    children: cards
-                        .map(
-                          (card) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: card,
-                          ),
-                        )
-                        .toList(),
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: cards
-                        .map(
-                          (card) => Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              child: card,
-                            ),
-                          ),
-                        )
-                        .toList(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SectionTag(label: 'PROTOCOL WORKFLOW'),
+              const SizedBox(height: 16),
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontSize: isMobile ? 28 : 48,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
                   ),
-            SizedBox(height: isMobile ? 18 : 28),
-            const _ProtocolNote(),
-          ],
+                  children: [
+                    const TextSpan(text: 'Three moves from\n'),
+                    WidgetSpan(
+                      child: ShaderMask(
+                        shaderCallback: (b) => const LinearGradient(
+                          colors: [AppTheme.primary, AppTheme.primaryLight],
+                        ).createShader(b),
+                        child: Text(
+                          'file',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontSize: isMobile ? 28 : 48,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                        ),
+                      ),
+                    ),
+                    const TextSpan(text: ' to '),
+                    WidgetSpan(
+                      child: ShaderMask(
+                        shaderCallback: (b) => const LinearGradient(
+                          colors: [AppTheme.primary, AppTheme.primaryLight],
+                        ).createShader(b),
+                        child: Text(
+                          'forever.',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontSize: isMobile ? 28 : 48,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: isMobile ? 32 : 52),
+              isMobile
+                  ? Column(
+                      children: cards
+                          .map(
+                            (c) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: c,
+                            ),
+                          )
+                          .toList(),
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: cards
+                          .map(
+                            (c) => Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: c,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+              SizedBox(height: isMobile ? 20 : 32),
+              const _ProtocolNoteBanner(),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ProtocolNote extends StatelessWidget {
-  const _ProtocolNote();
+class _ProtocolCard extends StatefulWidget {
+  const _ProtocolCard({
+    required this.step,
+    required this.label,
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+
+  final String step;
+  final String label;
+  final String title;
+  final String description;
+  final IconData icon;
+
+  @override
+  State<_ProtocolCard> createState() => _ProtocolCardState();
+}
+
+class _ProtocolCardState extends State<_ProtocolCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 240),
+          padding: const EdgeInsets.all(28),
+          transform: _hovered
+              ? Matrix4.translationValues(0, -6, 0)
+              : Matrix4.identity(),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F1A24), Color(0xFF070B10)],
+            ),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            border: Border.all(
+              color: _hovered
+                  ? AppTheme.primary.withValues(alpha: 0.45)
+                  : AppTheme.border,
+            ),
+            boxShadow: _hovered
+                ? AppTheme.glowShadow(opacity: 0.10, blur: 28)
+                : null,
+          ),
+          child: Stack(
+            children: [
+              // Ghost step number
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Text(
+                  widget.step,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontSize: 54,
+                    color: Colors.white.withValues(alpha: 0.05),
+                    height: 1,
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${widget.step} · ${widget.label}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppTheme.muted,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primary.withValues(alpha: 0.15),
+                          AppTheme.primary.withValues(alpha: 0.03),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      border: Border.all(
+                        color: AppTheme.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Icon(widget.icon, color: AppTheme.primary),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    widget.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.muted,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProtocolNoteBanner extends StatelessWidget {
+  const _ProtocolNoteBanner();
 
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 760;
+    final facts = const [
+      _ProtocolFact(
+        icon: Icons.lock_outline_rounded,
+        label: 'Storage',
+        value: 'Walrus blob backed',
+      ),
+      _ProtocolFact(
+        icon: Icons.route_outlined,
+        label: 'Route',
+        value: 'Short code redirect',
+      ),
+      _ProtocolFact(
+        icon: Icons.speed_rounded,
+        label: 'Flow',
+        value: 'Upload to share in one pass',
+      ),
+    ];
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 20 : 26),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.34),
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primary.withValues(alpha: 0.06),
+            AppTheme.primary.withValues(alpha: 0.01),
+          ],
+        ),
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        border: Border.all(color: AppTheme.accent.withValues(alpha: 0.14)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.20)),
       ),
       child: isMobile
-          ? const Column(
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ProtocolFact(
-                  icon: Icons.lock_outline_rounded,
-                  label: 'Storage',
-                  value: 'Walrus blob backed',
-                ),
-                SizedBox(height: 16),
-                _ProtocolFact(
-                  icon: Icons.route_outlined,
-                  label: 'Route',
-                  value: 'Short code redirect',
-                ),
-                SizedBox(height: 16),
-                _ProtocolFact(
-                  icon: Icons.speed_rounded,
-                  label: 'Flow',
-                  value: 'Upload to share in one pass',
-                ),
-              ],
+              children:
+                  facts.expand((f) => [f, const SizedBox(height: 16)]).toList()
+                    ..removeLast(),
             )
-          : const Row(
-              children: [
-                Expanded(
-                  child: _ProtocolFact(
-                    icon: Icons.lock_outline_rounded,
-                    label: 'Storage',
-                    value: 'Walrus blob backed',
-                  ),
-                ),
-                Expanded(
-                  child: _ProtocolFact(
-                    icon: Icons.route_outlined,
-                    label: 'Route',
-                    value: 'Short code redirect',
-                  ),
-                ),
-                Expanded(
-                  child: _ProtocolFact(
-                    icon: Icons.speed_rounded,
-                    label: 'Flow',
-                    value: 'Upload to share in one pass',
-                  ),
-                ),
-              ],
-            ),
+          : Row(children: facts.map((f) => Expanded(child: f)).toList()),
     );
   }
 }
@@ -989,27 +1615,22 @@ class _ProtocolFact extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppTheme.accent, size: 22),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.primary,
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white38,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
         ),
       ],
@@ -1017,264 +1638,9 @@ class _ProtocolFact extends StatelessWidget {
   }
 }
 
-class _FeatureCard extends StatefulWidget {
-  const _FeatureCard({
-    required this.tag,
-    required this.title,
-    required this.description,
-    required this.number,
-    required this.icon,
-    required this.accent,
-  });
-
-  final String tag;
-  final String title;
-  final String description;
-  final String number;
-  final IconData icon;
-  final Color accent;
-
-  @override
-  State<_FeatureCard> createState() => _FeatureCardState();
-}
-
-class _FeatureCardState extends State<_FeatureCard> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 700;
-
-    return RepaintBoundary(
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          width: isMobile ? 260 : 300,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: EdgeInsets.all(isMobile ? 20 : 24),
-          transform: _hovered
-              ? Matrix4.translationValues(0.0, -8.0, 0.0)
-              : Matrix4.identity(),
-          decoration: BoxDecoration(
-            color: _hovered ? AppTheme.surfaceAlt : AppTheme.surface,
-            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-            border: Border.all(
-              color: _hovered
-                  ? widget.accent.withValues(alpha: 0.8)
-                  : AppTheme.border,
-            ),
-            boxShadow: _hovered
-                ? AppTheme.glowShadow(
-                    opacity: 0.18,
-                    blur: 34,
-                    color: widget.accent,
-                  )
-                : null,
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.tag,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: _hovered ? Colors.white : Colors.white54,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 260),
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _hovered
-                          ? widget.accent
-                          : Colors.white.withValues(alpha: 0.25),
-                    ),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        width: isMobile ? 92 : 112,
-                        height: isMobile ? 92 : 112,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
-                          color: AppTheme.surfaceAlt,
-                          border: Border.all(
-                            color: widget.accent.withValues(alpha: 0.16),
-                          ),
-                        ),
-                        child: Icon(
-                          widget.icon,
-                          size: isMobile ? 42 : 52,
-                          color: _hovered ? widget.accent : Colors.white54,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        widget.description,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.58),
-                          height: 1.45,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.only(top: 16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.number,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: Colors.white30),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProtocolCard extends StatefulWidget {
-  const _ProtocolCard({
-    required this.step,
-    required this.title,
-    required this.label,
-    required this.description,
-    required this.icon,
-  });
-
-  final String step;
-  final String title;
-  final String label;
-  final String description;
-  final IconData icon;
-
-  @override
-  State<_ProtocolCard> createState() => _ProtocolCardState();
-}
-
-class _ProtocolCardState extends State<_ProtocolCard> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 240),
-          padding: const EdgeInsets.all(26),
-          transform: _hovered
-              ? Matrix4.translationValues(0.0, -6.0, 0.0)
-              : Matrix4.identity(),
-          decoration:
-              AppTheme.glassCard(
-                borderRadius: AppTheme.radiusMd,
-                borderColor: _hovered
-                    ? AppTheme.primary.withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.1),
-              ).copyWith(
-                boxShadow: _hovered
-                    ? AppTheme.glowShadow(opacity: 0.1, blur: 26)
-                    : null,
-              ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                      border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.22),
-                      ),
-                    ),
-                    child: Icon(widget.icon, color: AppTheme.primary),
-                  ),
-                  const Spacer(),
-                  Text(
-                    widget.step,
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontSize: 42,
-                      color: Colors.white.withValues(alpha: 0.16),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Text(
-                widget.label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppTheme.accent,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                widget.title,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                widget.description,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.muted,
-                  height: 1.55,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// BOTTOM CTA SECTION
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _BottomCTASection extends StatelessWidget {
   const _BottomCTASection();
@@ -1290,202 +1656,381 @@ class _BottomCTASection extends StatelessWidget {
         horizontal: isMobile ? 20 : 48,
         vertical: isMobile ? 80 : 120,
       ),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 980),
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 22 : 54,
-          vertical: isMobile ? 40 : 58,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.22)),
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.primary.withValues(alpha: 0.18),
-              AppTheme.primaryDark.withValues(alpha: 0.08),
-              AppTheme.accent.withValues(alpha: 0.04),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: AppTheme.glowShadow(opacity: 0.08, blur: 54),
-        ),
-        child: isMobile
-            ? Column(
-                children: [
-                  Text(
-                    'Ready?',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                    ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: Column(
+            children: [
+              const _SectionTag(label: 'START NOW'),
+              const SizedBox(height: 24),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontSize: isMobile ? 36 : 62,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Start sharing\npermanent links today',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: isMobile ? 34 : 56,
-                      fontWeight: FontWeight.w900,
-                      height: 1.1,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No sign-up required. Upload a file, get a short link, done. Powered by Walrus decentralized storage.',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.66),
-                      height: 1.55,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 38),
-                  FilledButton.icon(
-                    onPressed: () => context.go('/upload'),
-                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                    label: const Text('Launch App'),
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 32 : 48,
-                        vertical: isMobile ? 18 : 24,
-                      ),
-                      textStyle: TextStyle(
-                        fontSize: isMobile ? 16 : 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ready?',
-                          style: Theme.of(context).textTheme.labelSmall
+                  children: [
+                    const TextSpan(text: 'Drop a file.\n'),
+                    WidgetSpan(
+                      child: ShaderMask(
+                        shaderCallback: (b) => const LinearGradient(
+                          colors: [AppTheme.primary, AppTheme.primaryLight],
+                        ).createShader(b),
+                        child: Text(
+                          'Outlive the internet.',
+                          style: Theme.of(context).textTheme.headlineLarge
                               ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.7),
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2,
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Start sharing\npermanent links today',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(
-                                fontSize: 56,
+                                fontSize: isMobile ? 36 : 62,
                                 fontWeight: FontWeight.w900,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.white,
                                 height: 1.1,
                               ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No sign-up required. Upload a file, get a short link, done. Powered by Walrus decentralized storage.',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.66),
-                                height: 1.55,
-                              ),
-                        ),
-                        const SizedBox(height: 38),
-                        FilledButton.icon(
-                          onPressed: () => context.go('/upload'),
-                          icon: const Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 20,
-                          ),
-                          label: const Text('Launch App'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 48,
-                              vertical: 24,
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Free to use. Open source. Built on Walrus decentralized storage.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.muted,
+                  fontSize: isMobile ? 14 : 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 36),
+              Wrap(
+                spacing: 14,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => context.go('/upload'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: const Color(0xFF04241F),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 36,
+                        vertical: isMobile ? 14 : 18,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.upload_rounded, size: 18),
+                    label: Text(
+                      'Upload your first file',
+                      style: TextStyle(
+                        fontSize: isMobile ? 15 : 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 48),
-                  _CTAVisual(),
+                  OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.muted,
+                      side: BorderSide(color: AppTheme.border),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 36,
+                        vertical: isMobile ? 14 : 18,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Read the docs',
+                      style: TextStyle(
+                        fontSize: isMobile ? 15 : 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _CTAVisual extends StatelessWidget {
-  const _CTAVisual();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 120,
-      height: 120,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.primary.withValues(alpha: 0.3),
-                width: 2,
-              ),
-            ),
-          ),
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.accent.withValues(alpha: 0.4),
-                width: 2,
-              ),
-            ),
-          ),
-          Icon(
-            Icons.link_rounded,
-            size: 40,
-            color: Colors.white.withValues(alpha: 0.9),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// FOOTER
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _Footer extends StatelessWidget {
   const _Footer();
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 760;
+
     return Container(
       width: double.infinity,
       color: AppTheme.background,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 22,
-        runSpacing: 12,
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 24 : 48,
+        0,
+        isMobile ? 24 : 48,
+        32,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Divider(color: AppTheme.border),
+          const SizedBox(height: 40),
+          isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _FooterBrand(context: context),
+                    const SizedBox(height: 32),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _FooterLinks(
+                            title: 'PRODUCT',
+                            links: _productLinks,
+                          ),
+                        ),
+                        Expanded(
+                          child: _FooterLinks(
+                            title: 'PROTOCOL',
+                            links: _protocolLinks,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 5, child: _FooterBrand(context: context)),
+                    const SizedBox(width: 48),
+                    Expanded(
+                      flex: 2,
+                      child: _FooterLinks(
+                        title: 'PRODUCT',
+                        links: _productLinks,
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      flex: 2,
+                      child: _FooterLinks(
+                        title: 'PROTOCOL',
+                        links: _protocolLinks,
+                      ),
+                    ),
+                  ],
+                ),
+          const SizedBox(height: 40),
+          Divider(color: AppTheme.border),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '© 2025 Perma.link — Built on Walrus. Open source forever.',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppTheme.muted,
+                    fontSize: 11,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Mainnet operational',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppTheme.muted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _productLinks = [
+    ('Upload', '/upload'),
+    ('Docs', ''),
+    ('Changelog', ''),
+  ];
+
+  static const _protocolLinks = [
+    ('GitHub', ''),
+    ('Walrus', ''),
+    ('Sui Explorer', ''),
+  ];
+}
+
+class _FooterBrand extends StatelessWidget {
+  const _FooterBrand({required this.context});
+  final BuildContext context;
+
+  @override
+  Widget build(BuildContext _) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.link_rounded,
+                color: Color(0xFF04241F),
+                size: 15,
+              ),
+            ),
+            const SizedBox(width: 10),
+            RichText(
+              text: TextSpan(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+                children: const [
+                  TextSpan(
+                    text: 'Perma',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  TextSpan(
+                    text: '.link',
+                    style: TextStyle(color: AppTheme.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Text(
+            'A decentralized URL shortener built on Walrus storage. Short links that outlast the servers they\'re born on.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.muted,
+              height: 1.65,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FooterLinks extends StatelessWidget {
+  const _FooterLinks({required this.title, required this.links});
+
+  final String title;
+  final List<(String, String)> links;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: AppTheme.muted,
+            letterSpacing: 2,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...links.map(
+          (link) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: link.$2.isNotEmpty ? () => context.go(link.$2) : null,
+                child: Text(
+                  link.$1,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.muted,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARED WIDGETS
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _SectionTag extends StatelessWidget {
+  const _SectionTag({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primary,
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
-            'Perma.link - Powered by Walrus',
-            style: Theme.of(context).textTheme.labelSmall,
-            textAlign: TextAlign.center,
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppTheme.primary,
+              fontSize: 10,
+              letterSpacing: 1.2,
+            ),
           ),
         ],
       ),
@@ -1493,61 +2038,34 @@ class _Footer extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-    required this.compact,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-  final bool compact;
+class _TagChip extends StatelessWidget {
+  const _TagChip({required this.label});
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 20 : 48),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 840),
-        child: Column(
-          children: [
-            Text(
-              eyebrow,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppTheme.primary,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: compact ? 30 : 48,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.muted,
-                height: 1.55,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppTheme.primary,
+          fontSize: 9,
+          letterSpacing: 1.2,
         ),
       ),
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCROLL REVEAL
+// ═══════════════════════════════════════════════════════════════════════════
 
 class _ScrollReveal extends StatefulWidget {
   const _ScrollReveal({
@@ -1584,49 +2102,23 @@ class _ScrollRevealState extends State<_ScrollReveal>
     );
     _opacity = Tween<double>(begin: 0.0, end: 1.0).animate(curved);
     _translation = Tween<Offset>(
-      begin: const Offset(0, 0.08),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(curved);
-
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed && mounted) {
-        setState(() {});
-      }
-    });
 
     widget.scrollController.addListener(_checkVisibility);
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkVisibility());
   }
 
-  @override
-  void didUpdateWidget(covariant _ScrollReveal oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.scrollController != widget.scrollController) {
-      oldWidget.scrollController.removeListener(_checkVisibility);
-      if (!_visible) {
-        widget.scrollController.addListener(_checkVisibility);
-      }
-    }
-  }
-
   void _checkVisibility() {
     if (_visible || !mounted) return;
-    final renderObject = context.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) return;
-
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final top = renderObject.localToGlobal(Offset.zero).dy;
-    if (top < viewportHeight * 0.86) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final pos = box.localToGlobal(Offset.zero);
+    final screenH = MediaQuery.of(context).size.height;
+    if (pos.dy < screenH * 0.88) {
       _visible = true;
-      // Detach immediately so we stop paying the cost on every scroll tick.
-      widget.scrollController.removeListener(_checkVisibility);
-      if (MediaQuery.of(context).disableAnimations) {
-        _controller.value = 1.0;
-      } else {
-        _controller.forward();
-      }
-      // Trigger one rebuild to swap into the visible branch.
-      if (mounted) setState(() {});
+      _controller.forward();
     }
   }
 
@@ -1639,11 +2131,7 @@ class _ScrollRevealState extends State<_ScrollReveal>
 
   @override
   Widget build(BuildContext context) {
-    // Fast path: once fully shown, render the child plainly — no FadeTransition
-    // / SlideTransition layers, so completed sections cost zero on scroll.
-    if (_visible && _controller.isCompleted) {
-      return widget.child;
-    }
+    if (_visible && _controller.isCompleted) return widget.child;
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(position: _translation, child: widget.child),

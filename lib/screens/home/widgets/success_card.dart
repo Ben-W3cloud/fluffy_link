@@ -47,19 +47,6 @@ class _SuccessCardState extends State<SuccessCard> {
     if (mounted) setState(() => _copiedUrl = null);
   }
 
-  Future<void> _shareTwitter() async {
-    final text = Uri.encodeComponent('Check out this file on Perma.link');
-    final url = Uri.encodeComponent(widget.link.shortUrl);
-    final uri = Uri.parse(
-      'https://twitter.com/intent/tweet?text=$text&url=$url',
-    );
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
-  Future<void> _shareNative() async {
-    await shareUrl(title: 'Perma.link', url: widget.link.shortUrl);
-  }
-
   String _formatDate(DateTime date) {
     final months = [
       'Jan',
@@ -143,23 +130,33 @@ class _SuccessCardState extends State<SuccessCard> {
 
         const SizedBox(height: 20),
 
-        // Share buttons
+        // Action buttons
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _ShareButton(
-              icon: Icons.share_outlined,
-              label: 'Twitter',
-              onPressed: _shareTwitter,
-            ),
-            if (isWebShareSupported) ...[
-              const SizedBox(width: 8),
-              _ShareButton(
-                icon: Icons.ios_share_outlined,
-                label: 'Share',
-                onPressed: _shareNative,
+            _ActionButton(
+              icon: Icons.open_in_new_rounded,
+              label: 'View',
+              onPressed: () => launchUrl(
+                Uri.parse(widget.link.shortUrl),
+                mode: LaunchMode.externalApplication,
               ),
-            ],
+            ),
+            const SizedBox(width: 12),
+            _ActionButton(
+              icon: Icons.copy_outlined,
+              label: 'Copy',
+              onPressed: () => _copy(widget.link.shortUrl),
+            ),
+            const SizedBox(width: 12),
+            _ActionButton(
+              icon: Icons.download_rounded,
+              label: 'Download',
+              onPressed: () => launchUrl(
+                Uri.parse(widget.link.shortUrl),
+                mode: LaunchMode.externalApplication,
+              ),
+            ),
           ],
         ),
 
@@ -222,10 +219,7 @@ class _LinkBox extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: AppTheme.mutedDim, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppTheme.mutedDim, fontSize: 12)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -269,8 +263,8 @@ class _LinkBox extends StatelessWidget {
   }
 }
 
-class _ShareButton extends StatelessWidget {
-  const _ShareButton({
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
     required this.icon,
     required this.label,
     required this.onPressed,
@@ -282,13 +276,19 @@ class _ShareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: TextButton.styleFrom(
-        foregroundColor: AppTheme.muted,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    return Expanded(
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
+          foregroundColor: AppTheme.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       ),
     );
   }

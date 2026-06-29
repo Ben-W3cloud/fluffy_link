@@ -87,5 +87,6 @@ yarn.lock
 # ── Vercel ──────────────────────────────────────────────────────
 .vercel/
 
-!build/
-!build/web/
+build/
+build/web/
+.claude

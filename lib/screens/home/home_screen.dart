@@ -179,31 +179,33 @@ class _HomeScreenState extends State<HomeScreen> {
       scrollable: false,
       child: Stack(
         children: [
-          const AnimatedGridBackground(),
+          const Positioned.fill(child: AnimatedGridBackground()),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: switch (_state) {
-                  UploadState.idle => _UploadPicker(
-                    onBrowse: _handleFilePick,
-                    onFileDrop: _upload,
-                  ),
-                  UploadState.uploading => UploadProgress(
-                    fileName: _uploadingFileName,
-                    phase: _phase,
-                  ),
-                  UploadState.done => SuccessCard(
-                    link: _createdLink!,
-                    metadata: _uploadMetadata!,
-                    onReset: _reset,
-                  ),
-                  UploadState.error => ErrorCard(
-                    message:
-                        _errorMessage ?? 'Something went wrong. Try again.',
-                    onRetry: _reset,
-                  ),
-                },
+                child: Center(
+                  child: switch (_state) {
+                    UploadState.idle => _UploadPicker(
+                      onBrowse: _handleFilePick,
+                      onFileDrop: _upload,
+                    ),
+                    UploadState.uploading => UploadProgress(
+                      fileName: _uploadingFileName,
+                      phase: _phase,
+                    ),
+                    UploadState.done => SuccessCard(
+                      link: _createdLink!,
+                      metadata: _uploadMetadata!,
+                      onReset: _reset,
+                    ),
+                    UploadState.error => ErrorCard(
+                      message:
+                          _errorMessage ?? 'Something went wrong. Try again.',
+                      onRetry: _reset,
+                    ),
+                  },
+                ),
               ),
               if (_state == UploadState.idle) ...[
                 const SizedBox(height: AppTheme.spaceXl),

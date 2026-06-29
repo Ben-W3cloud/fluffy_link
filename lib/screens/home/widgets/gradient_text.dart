@@ -45,10 +45,7 @@ class GradientText extends StatelessWidget {
 class AppGradientText {
   /// Hero headline gradient: primary → accent
   static Gradient heroHeadline() => LinearGradient(
-    colors: [
-      AppTheme.primary,
-      AppTheme.accent,
-    ],
+    colors: [AppTheme.primary, AppTheme.accent],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

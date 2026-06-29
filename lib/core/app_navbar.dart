@@ -20,8 +20,6 @@ class AppNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 900 covers narrow laptop windows where the four desktop nav links plus
-    // PERMA.LINK logo and the "Start Uploading" CTA can't all fit on one row.
     final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Padding(
@@ -37,13 +35,14 @@ class AppNavBar extends StatelessWidget {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: AppTheme.surface.withValues(alpha: 0.88),
+          color: AppTheme.background.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppTheme.border),
-          boxShadow: AppTheme.glowShadow(opacity: 0.1, blur: 32),
+          boxShadow: AppTheme.glowShadow(opacity: 0.08, blur: 32),
         ),
         child: Row(
           children: [
+            // ── Logo ──
             InkWell(
               onTap: () => context.go('/'),
               borderRadius: BorderRadius.circular(24),
@@ -55,11 +54,11 @@ class AppNavBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: AppTheme.glowShadow(opacity: 0.35, blur: 10),
+                      boxShadow: AppTheme.glowShadow(opacity: 0.3, blur: 12),
                     ),
                     child: const Icon(
                       Icons.link_rounded,
-                      color: Colors.white,
+                      color: Color(0xFF04241F),
                       size: 16,
                     ),
                   ),
@@ -67,13 +66,17 @@ class AppNavBar extends StatelessWidget {
                   RichText(
                     text: TextSpan(
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0,
+                        fontSize: 17,
                       ),
                       children: const [
-                        TextSpan(text: 'PERMA.'),
                         TextSpan(
-                          text: 'LINK',
+                          text: 'Perma',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        TextSpan(
+                          text: '.link',
                           style: TextStyle(color: AppTheme.primary),
                         ),
                       ],
@@ -84,53 +87,60 @@ class AppNavBar extends StatelessWidget {
             ),
             const Spacer(),
             if (!isMobile) ...[
-              _NavLink(
-                label: 'WHY',
-                isActive: false,
-                onTap: onScrollToWhy,
-              ),
-              _NavLink(
-                label: 'FEATURES',
-                isActive: false,
-                onTap: onScrollToFeatures,
-              ),
-              _NavLink(
-                label: 'HOW IT WORKS',
-                isActive: false,
-                onTap: onScrollToWorkflow,
-              ),
-              const SizedBox(width: 12),
+              _NavLink(label: 'Home', onTap: () => context.go('/')),
+              _NavLink(label: 'Why', onTap: onScrollToWhy),
+              _NavLink(label: 'Features', onTap: onScrollToFeatures),
+              _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
+              const SizedBox(width: 16),
             ],
             if (isMobile)
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => _showMobileMenu(context),
-                    icon: const Icon(Icons.menu_rounded),
-                    color: AppTheme.onSurface,
-                  ),
-                ],
+              IconButton(
+                onPressed: () => _showMobileMenu(context),
+                icon: const Icon(Icons.menu_rounded),
+                color: AppTheme.onSurface,
               )
             else
               Row(
                 children: [
+                  // Upload button
                   FilledButton.icon(
                     onPressed: () => context.go('/upload'),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF04241F),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 22,
-                        vertical: 12,
+                        horizontal: 18,
+                        vertical: 11,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      shadowColor: AppTheme.primary.withValues(alpha: 0.4),
-                      elevation: 4,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
-                    icon: const Icon(Icons.rocket_launch_rounded, size: 15),
-                    label: const Text('Launch App'),
+                    icon: const Icon(Icons.upload_rounded, size: 15),
+                    label: const Text(
+                      'Upload',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // GitHub ghost button
+                  OutlinedButton.icon(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.muted,
+                      side: BorderSide(color: AppTheme.border),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 11,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const _GitHubIcon(),
+                    label: const Text('GitHub', style: TextStyle(fontSize: 13)),
                   ),
                 ],
               ),
@@ -153,33 +163,54 @@ class AppNavBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppTheme.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             _MobileNavItem(
-              label: 'WHY',
+              label: 'Home',
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/');
+              },
+            ),
+            _MobileNavItem(
+              label: 'Why',
               onTap: () {
                 Navigator.pop(context);
                 onScrollToWhy?.call();
               },
             ),
             _MobileNavItem(
-              label: 'FEATURES',
+              label: 'Features',
               onTap: () {
                 Navigator.pop(context);
                 onScrollToFeatures?.call();
               },
             ),
             _MobileNavItem(
-              label: 'HOW IT WORKS',
+              label: 'Protocol',
               onTap: () {
                 Navigator.pop(context);
                 onScrollToWorkflow?.call();
               },
             ),
-            _MobileNavItem(
-              label: 'LAUNCH APP',
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/upload');
-              },
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.go('/upload');
+                },
+                icon: const Icon(Icons.upload_rounded, size: 16),
+                label: const Text('Upload a file'),
+              ),
             ),
           ],
         ),
@@ -189,14 +220,9 @@ class AppNavBar extends StatelessWidget {
 }
 
 class _NavLink extends StatefulWidget {
-  const _NavLink({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _NavLink({required this.label, required this.onTap});
 
   final String label;
-  final bool isActive;
   final VoidCallback? onTap;
 
   @override
@@ -208,36 +234,24 @@ class _NavLinkState extends State<_NavLink> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.isActive
-        ? AppTheme.primary
-        : (_hovered ? Colors.white : Colors.white60);
-
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: widget.isActive
-                ? AppTheme.primary.withValues(alpha: 0.12)
-                : (_hovered ? AppTheme.surface : Colors.transparent),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: widget.isActive
-                  ? AppTheme.primary.withValues(alpha: 0.3)
-                  : Colors.transparent,
-            ),
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Text(
             widget.label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _hovered ? AppTheme.onSurface : AppTheme.muted,
             ),
           ),
         ),
@@ -259,11 +273,64 @@ class _MobileNavItem extends StatelessWidget {
       leading: const Icon(Icons.chevron_right_rounded, color: AppTheme.primary),
       title: Text(
         label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          letterSpacing: 1.2,
-          fontWeight: FontWeight.w800,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }
+}
+
+// ── Small GitHub SVG icon painted via CustomPaint ─────────────────────────
+class _GitHubIcon extends StatelessWidget {
+  const _GitHubIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(14, 14),
+      painter: _GitHubPainter(color: AppTheme.muted),
+    );
+  }
+}
+
+class _GitHubPainter extends CustomPainter {
+  const _GitHubPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Simplified GitHub mark path (scaled to size)
+    final path = Path();
+    final s = size.width / 24.0;
+    path.moveTo(12 * s, 0.5 * s);
+    path.addOval(
+      Rect.fromCircle(center: Offset(12 * s, 12 * s), radius: 11.5 * s),
+    );
+    canvas.drawPath(path, paint);
+
+    // Draw the cat silhouette cutout — approximate with a simple icon
+    final inner = Paint()
+      ..color = AppTheme.surface
+      ..style = PaintingStyle.fill;
+    path.reset();
+    path.addOval(
+      Rect.fromCircle(center: Offset(12 * s, 10 * s), radius: 5 * s),
+    );
+    canvas.drawPath(path, inner);
+
+    // Body
+    path.reset();
+    path.moveTo(6 * s, 23 * s);
+    path.quadraticBezierTo(6 * s, 17 * s, 12 * s, 17 * s);
+    path.quadraticBezierTo(18 * s, 17 * s, 18 * s, 23 * s);
+    canvas.drawPath(path, inner);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

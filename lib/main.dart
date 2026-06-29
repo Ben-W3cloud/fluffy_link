@@ -1,10 +1,14 @@
 import 'dart:ui';
 import 'package:fluffy_link/app.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Use path-based URLs instead of hash URLs
+  usePathUrlStrategy();
 
   FlutterError.onError = (FlutterErrorDetails details) {
     print('FLUTTER ERROR: ${details.exception}');

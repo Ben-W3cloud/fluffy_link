@@ -22,40 +22,29 @@ class AppTheme {
   // ── Content width ────────────────────────────────────────────────────
   static const double maxContentWidth = 1180;
 
-  // ── Electric Orange palette ─────────────────────────────────────────
-  // Deep dark backgrounds with electric orange primary
-  static const Color _backgroundDark = Color(0xFF0A0A0F); // deep charcoal
-  static const Color _surfaceDark = Color(0xFF121218); // dark gray-brown surface
-  static const Color _surfaceAltDark = Color(0xFF1A1A22); // elevated surface
-  static const Color _borderDark = Color(0xFF2A2A35); // warm gray-brown border
-  
-  static const Color background = _backgroundDark;
-  static const Color surface = _surfaceDark;
-  static const Color surfaceAlt = _surfaceAltDark;
-  static const Color border = _borderDark;
+  // ── Teal palette (matching permalinkv2.html) ──────────────────────────
+  static const Color background = Color(0xFF070B10); // #070b10
+  static const Color surface = Color(0xFF0B1218); // #0b1218
+  static const Color surfaceAlt = Color(0xFF111A23); // #111a23
+  static const Color border = Color(0x268B98A6); // rgba(139,152,166,0.15)
 
-  // Brand: electric orange
-  static const Color primary = Color(0xFFFF6B00); // electric orange
-  static const Color primaryDark = Color(0xFFE65100); // deep orange
-  static const Color primaryLight = Color(0xFFFF8F00); // bright orange
+  // Brand: teal
+  static const Color primary = Color(0xFF2DD4BF); // #2dd4bf
+  static const Color primaryDark = Color(0xFF14B8A6); // #14b8a6
+  static const Color primaryLight = Color(0xFF5EEAD4); // #5eead4
 
-  // Accent: bright orange — complementary to primary orange
-  static const Color accent = Color(0xFFFF9800);
+  // Accent: deeper teal
+  static const Color accent = Color(0xFF0D9488); // #0d9488
 
   // Semantic
   static const Color success = Color(0xFF10B981);
   static const Color error = Color(0xFFEF4444);
 
   // Text
-  static const Color _onSurfaceDark = Color(0xFFCACBE8); // cool-white body text
-  static const Color _onSurfaceBrightDark = Color(0xFFFFFFFF);
-  static const Color _mutedDark = Color(0xFF8888AA); // muted blue-gray
-  static const Color _mutedDimDark = Color(0xFF5A5A7A); // dimmer
-  
-  static const Color onSurface = _onSurfaceDark;
-  static const Color onSurfaceBright = _onSurfaceBrightDark;
-  static const Color muted = _mutedDark;
-  static const Color mutedDim = _mutedDimDark;
+  static const Color onSurface = Color(0xFFE6EDF3); // #e6edf3
+  static const Color onSurfaceBright = Color(0xFFFFFFFF);
+  static const Color muted = Color(0xFF8B98A6); // #8b98a6
+  static const Color mutedDim = Color(0xFF5A6A78);
 
   // ── Gradients ────────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
@@ -65,7 +54,7 @@ class AppTheme {
   );
 
   static const LinearGradient heroGradient = LinearGradient(
-    colors: [Color(0xFF0F0F35), Color(0xFF07071A)],
+    colors: [Color(0xFF0B1A23), Color(0xFF070B10)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
@@ -126,92 +115,92 @@ class AppTheme {
     colorScheme: ColorScheme.dark(
       primary: primary,
       secondary: accent,
-      surface: _surfaceDark,
+      surface: surface,
       error: error,
-      onPrimary: Colors.white,
-      onSurface: _onSurfaceDark,
+      onPrimary: const Color(0xFF04241F), // dark teal contrast text
+      onSurface: onSurface,
       onError: Colors.white,
     ),
-    scaffoldBackgroundColor: _backgroundDark,
+    scaffoldBackgroundColor: background,
     textTheme: GoogleFonts.spaceGroteskTextTheme(ThemeData.dark().textTheme)
         .copyWith(
           // ── Display / Hero (Bebas Neue) ──
           displayLarge: GoogleFonts.bebasNeue(
             fontSize: 160,
             fontWeight: FontWeight.w400,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
             height: 0.85,
             letterSpacing: -1.0,
           ),
           displayMedium: GoogleFonts.bebasNeue(
             fontSize: 96,
             fontWeight: FontWeight.w400,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
             height: 0.9,
           ),
           // ── Section headings (Space Grotesk) ──
           headlineLarge: GoogleFonts.spaceGrotesk(
             fontSize: 48,
             fontWeight: FontWeight.w700,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
             height: 1.15,
             letterSpacing: -0.5,
           ),
           headlineMedium: GoogleFonts.spaceGrotesk(
             fontSize: 32,
             fontWeight: FontWeight.w700,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
             height: 1.2,
             letterSpacing: -0.3,
           ),
           headlineSmall: GoogleFonts.spaceGrotesk(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
             letterSpacing: -0.2,
           ),
           titleLarge: GoogleFonts.spaceGrotesk(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
           ),
           titleMedium: GoogleFonts.spaceGrotesk(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: _onSurfaceDark,
+            color: onSurface,
           ),
           bodyLarge: GoogleFonts.spaceGrotesk(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: _onSurfaceDark,
+            color: onSurface,
           ),
           bodyMedium: GoogleFonts.spaceGrotesk(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: _onSurfaceDark,
+            color: onSurface,
           ),
           bodySmall: GoogleFonts.spaceGrotesk(
             fontSize: 12,
             fontWeight: FontWeight.w400,
-            color: _mutedDark,
+            color: muted,
           ),
           labelLarge: GoogleFonts.spaceGrotesk(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: _onSurfaceBrightDark,
+            color: onSurfaceBright,
           ),
           // ── Mono labels / code / tags (Fira Code) ──
           labelSmall: GoogleFonts.firaCode(
             fontSize: 10,
             fontWeight: FontWeight.w500,
             letterSpacing: 1.8,
-            color: _mutedDark,
+            color: muted,
           ),
         ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: primary,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFF04241F),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle: GoogleFonts.spaceGrotesk(
@@ -231,8 +220,8 @@ class AppTheme {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primary,
-        side: const BorderSide(color: primary, width: 1.5),
+        foregroundColor: onSurface,
+        side: BorderSide(color: border, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle: GoogleFonts.spaceGrotesk(
@@ -242,25 +231,25 @@ class AppTheme {
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(foregroundColor: _mutedDark),
+      style: IconButton.styleFrom(foregroundColor: muted),
     ),
     cardTheme: CardThemeData(
-      color: _surfaceDark,
+      color: surface,
       surfaceTintColor: Colors.transparent,
       shadowColor: primary.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: _borderDark.withValues(alpha: 0.8)),
+        side: BorderSide(color: border),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: _surfaceDark,
-      hintStyle: GoogleFonts.spaceGrotesk(color: _mutedDimDark),
-      labelStyle: GoogleFonts.spaceGrotesk(color: _mutedDark),
+      fillColor: surface,
+      hintStyle: GoogleFonts.spaceGrotesk(color: mutedDim),
+      labelStyle: GoogleFonts.spaceGrotesk(color: muted),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: _borderDark.withValues(alpha: 0.9)),
+        borderSide: BorderSide(color: border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -276,14 +265,14 @@ class AppTheme {
       ),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: _surfaceDark,
+      backgroundColor: surface,
       surfaceTintColor: Colors.transparent,
-      modalBackgroundColor: _surfaceDark,
+      modalBackgroundColor: surface,
       modalBarrierColor: Colors.black87,
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: _surfaceAltDark,
-      contentTextStyle: GoogleFonts.spaceGrotesk(color: _onSurfaceBrightDark),
+      backgroundColor: surfaceAlt,
+      contentTextStyle: GoogleFonts.spaceGrotesk(color: onSurfaceBright),
       actionTextColor: primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -294,7 +283,6 @@ class AppTheme {
       selectionHandleColor: primary,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(color: primary),
-    dividerTheme: const DividerThemeData(color: _borderDark, thickness: 1),
+    dividerTheme: const DividerThemeData(color: border, thickness: 1),
   );
-
 }
