@@ -1,3 +1,4 @@
+import 'package:fluffy_link/core/constants.dart';
 import 'package:fluffy_link/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -90,21 +91,30 @@ class AppNavBar extends StatelessWidget {
             const Spacer(),
             if (!isMobile) ...[
               _NavLink(label: 'Home', onTap: () => context.go('/')),
-              _NavLink(label: 'Why', onTap: onScrollToWhy),
-              _NavLink(label: 'Features', onTap: onScrollToFeatures),
-              _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
+              // Section anchors only render on the landing route; on other
+              // pages the GlobalKey targets don't exist, so the labels would
+              // be silently dead links.
+              if (onScrollToWhy != null)
+                _NavLink(label: 'Why', onTap: onScrollToWhy),
+              if (onScrollToFeatures != null)
+                _NavLink(label: 'Features', onTap: onScrollToFeatures),
+              if (onScrollToWorkflow != null)
+                _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
               const SizedBox(width: 16),
               // Launch A File button with rocket icon and text
               Semantics(
                 label: 'Launch A File',
                 child: TextButton.icon(
-                  onPressed: () => context.go('/upload'),
+                  onPressed: () => context.go('/auth'),
                   icon: const Icon(Icons.rocket_launch_rounded, size: 16),
                   label: const Text('Launch A File'),
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.onSurface,
                     backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -112,18 +122,12 @@ class AppNavBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-            ],
-            if (isMobile)
-              IconButton(
-                onPressed: () => _showMobileMenu(context),
-                icon: const Icon(Icons.menu_rounded),
-                color: AppTheme.onSurface,
-              )
-            else
-              // GitHub button - now takes you to the GitHub repository
+              _DashboardButton(),
+              const SizedBox(width: 8),
+              // GitHub repo link.
               OutlinedButton.icon(
                 onPressed: () => launchUrl(
-                  Uri.parse('https://github.com/Ben-W3cloud/perma_link'),
+                  Uri.parse(AppConstants.githubUrl),
                   mode: LaunchMode.externalApplication,
                 ),
                 style: OutlinedButton.styleFrom(
@@ -140,6 +144,13 @@ class AppNavBar extends StatelessWidget {
                 icon: const _GitHubIcon(),
                 label: const Text('GitHub', style: TextStyle(fontSize: 13)),
               ),
+            ],
+            if (isMobile)
+              IconButton(
+                onPressed: () => _showMobileMenu(context),
+                icon: const Icon(Icons.menu_rounded),
+                color: AppTheme.onSurface,
+              ),
           ],
         ),
       ),
@@ -154,7 +165,7 @@ class AppNavBar extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Padding(
+      builder: (sheetContext) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -171,29 +182,39 @@ class AppNavBar extends StatelessWidget {
             _MobileNavItem(
               label: 'Home',
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 context.go('/');
               },
             ),
+            if (onScrollToWhy != null)
+              _MobileNavItem(
+                label: 'Why',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onScrollToWhy?.call();
+                },
+              ),
+            if (onScrollToFeatures != null)
+              _MobileNavItem(
+                label: 'Features',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onScrollToFeatures?.call();
+                },
+              ),
+            if (onScrollToWorkflow != null)
+              _MobileNavItem(
+                label: 'Protocol',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onScrollToWorkflow?.call();
+                },
+              ),
             _MobileNavItem(
-              label: 'Why',
+              label: 'Sign In',
               onTap: () {
-                Navigator.pop(context);
-                onScrollToWhy?.call();
-              },
-            ),
-            _MobileNavItem(
-              label: 'Features',
-              onTap: () {
-                Navigator.pop(context);
-                onScrollToFeatures?.call();
-              },
-            ),
-            _MobileNavItem(
-              label: 'Protocol',
-              onTap: () {
-                Navigator.pop(context);
-                onScrollToWorkflow?.call();
+                Navigator.pop(sheetContext);
+                context.go('/auth');
               },
             ),
             const SizedBox(height: 8),
@@ -201,8 +222,8 @@ class AppNavBar extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: () {
-                  Navigator.pop(context);
-                  context.go('/upload');
+                  Navigator.pop(sheetContext);
+                  context.go('/auth');
                 },
                 icon: const Icon(Icons.upload_rounded, size: 16),
                 label: const Text('Upload a file'),
@@ -273,6 +294,24 @@ class _MobileNavItem extends StatelessWidget {
           context,
         ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
+    );
+  }
+}
+
+/// Dashboard button — always visible, no auth required.
+class _DashboardButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => context.go('/auth'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppTheme.onSurface,
+        side: BorderSide(color: AppTheme.border),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      icon: const Icon(Icons.login_rounded, size: 16),
+      label: const Text('Sign In', style: TextStyle(fontSize: 13)),
     );
   }
 }

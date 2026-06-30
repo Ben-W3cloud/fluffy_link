@@ -18,4 +18,9 @@ class AppConstants {
 
   // Change this before deploying with a real domain.
   static const String appDomain = 'https://permalink-gamma.vercel.app';
+
+  // External destinations used by the navbar + landing footer.
+  static const String githubUrl = 'https://github.com/Ben-W3Cloud/fluffy_link';
+  static const String walrusSiteUrl = 'https://walrus.site';
+  static const String suiExplorerUrl = 'https://suiscan.xyz';
 }

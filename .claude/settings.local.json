@@ -7,7 +7,11 @@
       "Bash(del *)",
       "Bash(xargs grep -l \"dash.png\\\\|caveat\\\\|Caveat\")",
       "Bash(dart format *)",
-      "Bash(flutter test *)"
+      "Bash(flutter test *)",
+      "Bash(xargs grep -l \"ui_components\\\\|AppTheme\")",
+      "Bash(grep -E \"\\\\.dart$\")",
+      "Bash(flutter pub *)",
+      "Bash(git stash *)"
     ]
   }
 }

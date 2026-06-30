@@ -61,7 +61,7 @@ class AppTheme {
 
   // ── Glow shadow ───────────────────────────────────────────────────────
   static List<BoxShadow> glowShadow({
-    double opacity = 0.3,
+    double opacity = 0.15,
     double blur = 24,
     Color color = primary,
   }) {

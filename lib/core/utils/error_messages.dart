@@ -12,15 +12,24 @@ class ErrorMessages {
       return error.message;
     }
     if (error is PostgrestException) {
-      return 'Failed to save your link. Try again.';
+      final message = error.message.toLowerCase();
+      if (message.contains('upload_limit_exceeded')) {
+        return "You've reached the upload limit (7 uploads per day). Please try again later.";
+      }
+      if (message.contains('not authenticated') ||
+          message.contains('not_authenticated') ||
+          message.contains('must be signed in')) {
+        return 'Please sign in before uploading a file.';
+      }
+      return "We couldn't save your link. Please try again.";
     }
     if (error is TimeoutException || _isNetworkError(error)) {
-      return 'Upload failed. Check your connection and try again.';
+      return "We couldn't upload your file. Check your connection and try again.";
     }
     if (error is RetryableWalrusClientError || error is WalrusApiError) {
       return 'Storage service unavailable. Try again in a moment.';
     }
-    return 'Something went wrong. Try again.';
+    return "We couldn't upload your file. Please try again.";
   }
 
   static String forRedirect(Object error) {

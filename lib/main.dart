@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:ui';
 import 'package:fluffy_link/app.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +12,21 @@ Future<void> main() async {
   usePathUrlStrategy();
 
   FlutterError.onError = (FlutterErrorDetails details) {
-    print('FLUTTER ERROR: ${details.exception}');
-    print('FLUTTER ERROR TYPE: ${details.exception.runtimeType}');
-    print('STACK: ${details.stack}');
+    developer.log(
+      'Flutter error',
+      name: 'main',
+      error: details.exception,
+      stackTrace: details.stack,
+    );
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    print('PLATFORM ERROR: $error');
-    print('PLATFORM ERROR TYPE: ${error.runtimeType}');
-    print('STACK: $stack');
+    developer.log(
+      'Platform error',
+      name: 'main',
+      error: error,
+      stackTrace: stack,
+    );
     return true;
   };
 
