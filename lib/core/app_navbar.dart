@@ -82,24 +82,20 @@ class AppNavBar extends StatelessWidget {
             ),
             const Spacer(),
             if (!isMobile) ...[
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _NavLink(label: 'Home', onTap: () => context.go('/')),
-                      // Section anchors only render on the landing route; on other
-                      // pages the GlobalKey targets don't exist, so the labels would
-                      // be silently dead links.
-                      if (onScrollToWhy != null)
-                        _NavLink(label: 'Why', onTap: onScrollToWhy),
-                      if (onScrollToFeatures != null)
-                        _NavLink(label: 'Features', onTap: onScrollToFeatures),
-                      if (onScrollToWorkflow != null)
-                        _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
-                    ],
-                  ),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _NavLink(label: 'Home', onTap: () => context.go('/')),
+                  // Section anchors only render on the landing route; on other
+                  // pages the GlobalKey targets don't exist, so the labels would
+                  // be silently dead links.
+                  if (onScrollToWhy != null)
+                    _NavLink(label: 'Why', onTap: onScrollToWhy),
+                  if (onScrollToFeatures != null)
+                    _NavLink(label: 'Features', onTap: onScrollToFeatures),
+                  if (onScrollToWorkflow != null)
+                    _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
+                ],
               ),
               const SizedBox(width: 16),
               _DashboardButton(),
