@@ -27,8 +27,14 @@ void main() {
 
     // Verify Landing Screen elements
     expect(find.textContaining('PERMA', findRichText: true), findsWidgets);
-    expect(find.text('Launch A File'), findsOneWidget); // Updated to match new button text
-    expect(find.text('Upload a file'), findsOneWidget); // Updated from 'Start Shortening'
+    expect(
+      find.text('Launch A File'),
+      findsOneWidget,
+    ); // Updated to match new button text
+    expect(
+      find.text('Upload a file'),
+      findsOneWidget,
+    ); // Updated from 'Start Shortening'
 
     // Navbar uses rocket icon + "Launch A File"; hero section uses arrow_forward icon
     await tester.tap(

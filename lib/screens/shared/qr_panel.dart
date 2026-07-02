@@ -4,11 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 // Shared collapsible QR panel used by both SuccessCard and FilePageScreen.
 class QrPanel extends StatefulWidget {
-  const QrPanel({
-    super.key,
-    required this.url,
-    this.initiallyExpanded = false,
-  });
+  const QrPanel({super.key, required this.url, this.initiallyExpanded = false});
 
   final String url;
   final bool initiallyExpanded;

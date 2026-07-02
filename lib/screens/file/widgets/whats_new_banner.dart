@@ -72,7 +72,8 @@ class _WhatsNewBannerState extends State<WhatsNewBanner> {
                 children: const [
                   TextSpan(text: 'New: short links open a file page now. '),
                   TextSpan(
-                    text: 'Tap View to open the file, or append ?download=1 '
+                    text:
+                        'Tap View to open the file, or append ?download=1 '
                         'to auto-download.',
                     style: TextStyle(color: AppTheme.muted),
                   ),

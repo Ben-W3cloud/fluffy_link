@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _checkAuthAndRedirect() async {
     final auth = AuthScope.of(context);
     if (!auth.isInitialized) await auth.initialize();
-    if (auth.currentUser == null && mounted) {
+    if (auth.currentSession?.user == null && mounted) {
       final from = Uri.encodeComponent('/upload');
       context.go('/auth?redirect=$from');
     }
@@ -90,7 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _upload(PlatformFile file) async {
-    final user = AuthScope.of(context).currentUser;
+    final auth = AuthScope.of(context);
+    final user = auth.currentSession?.user;
     if (user == null) {
       context.go('/auth?redirect=${Uri.encodeComponent('/upload')}');
       return;
@@ -113,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'HomeScreen._upload',
         error: {'file': file.name, 'size': file.size},
       );
-      _showError('File must be under 120MB');
+      _showError('File must be under 120 MB.');
       return;
     }
 
@@ -220,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return PageScaffold(
       currentRoute: '/upload',
-      maxContentWidth: 560,
+      maxContentWidth: 760,
       scrollable: true,
       child: Stack(
         clipBehavior: Clip.none,
@@ -250,7 +251,11 @@ class _HomeScreenState extends State<HomeScreen> {
               };
 
               return ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 620),
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height < 760
+                      ? 700
+                      : 620,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppTheme.spaceMd,
@@ -493,34 +498,28 @@ class _TrustBadges extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _TrustBadge(icon: Icons.lock, label: '10 MB max'),
-            const SizedBox(width: 16),
-            _TrustBadge(icon: Icons.cloud_queue, label: 'Walrus decentralized'),
-            const SizedBox(width: 16),
-            _TrustBadge(icon: Icons.verified_user, label: 'Account required'),
-            const SizedBox(width: 16),
-            _TrustBadge(
-              icon: Icons.timer_outlined,
-              label: 'Quota enforced by Supabase',
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        runAlignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 10,
+        children: const [
+          _TrustBadge(icon: Icons.lock, label: '120 MB max'),
+          _TrustBadge(icon: Icons.cloud_queue, label: 'Walrus decentralized'),
+          _TrustBadge(icon: Icons.verified_user, label: 'Account required'),
+          _TrustBadge(
+            icon: Icons.timer_outlined,
+            label: 'Quota enforced by Supabase',
+          ),
+        ],
       ),
     );
   }
 }
 
 class _TrustBadge extends StatelessWidget {
-  const _TrustBadge({
-    required this.icon,
-    required this.label,
-  });
+  const _TrustBadge({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -534,9 +533,7 @@ class _TrustBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surface.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.border.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

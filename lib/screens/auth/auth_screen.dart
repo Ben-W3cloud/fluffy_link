@@ -19,6 +19,7 @@ class _AuthScreenState extends State<AuthScreen>
   bool _isLoading = false;
   bool _showPassword = false;
   String? _errorMessage;
+  String? _successMessage;
   late final TabController _tabController;
 
   @override
@@ -26,7 +27,8 @@ class _AuthScreenState extends State<AuthScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
+      if (_tabController.indexIsChanging) return;
+      _clearFormState();
     });
   }
 
@@ -36,6 +38,19 @@ class _AuthScreenState extends State<AuthScreen>
     _passwordController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _clearFormState() {
+    _formKey.currentState?.reset();
+    _emailController.clear();
+    _passwordController.clear();
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _errorMessage = null;
+      _successMessage = null;
+      _showPassword = false;
+    });
   }
 
   Future<void> _handleSubmit() async {
@@ -53,11 +68,26 @@ class _AuthScreenState extends State<AuthScreen>
       if (_tabController.index == 0) {
         await authService.signIn(email: email, password: password);
       } else {
-        await authService.signUp(email: email, password: password);
+        final status = await authService.signUp(
+          email: email,
+          password: password,
+        );
+        if (status == SignUpStatus.confirmationEmailSent) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _successMessage =
+                'Account created. Check $email for a confirmation link, then return here to sign in.';
+            _passwordController.clear();
+          });
+          return;
+        }
       }
 
       if (mounted) {
-        final redirect = GoRouterState.of(context).uri.queryParameters['redirect'];
+        final redirect = GoRouterState.of(
+          context,
+        ).uri.queryParameters['redirect'];
         context.go(
           redirect != null && redirect.isNotEmpty
               ? Uri.decodeComponent(redirect)
@@ -79,8 +109,13 @@ class _AuthScreenState extends State<AuthScreen>
     if (text.contains('invalid login credentials')) {
       return 'That email and password combination was not recognized.';
     }
-    if (text.contains('already registered') || text.contains('already exists')) {
+    if (text.contains('already registered') ||
+        text.contains('already exists')) {
       return 'An account already exists for this email. Sign in instead.';
+    }
+    if (text.contains('email confirmation') ||
+        text.contains('email not confirmed')) {
+      return 'Account created, but Supabase requires email confirmation before sign in.';
     }
     if (text.contains('password')) {
       return 'Use a stronger password with at least 8 characters.';
@@ -97,7 +132,7 @@ class _AuthScreenState extends State<AuthScreen>
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 460),
             child: _buildFormState(),
           ),
         ),
@@ -138,9 +173,9 @@ class _AuthScreenState extends State<AuthScreen>
             // Title
             Text(
               'Welcome to Perma.link',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
@@ -248,30 +283,86 @@ class _AuthScreenState extends State<AuthScreen>
               },
             ),
 
+            if (_successMessage != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F241F),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.success.withValues(alpha: 0.55),
+                  ),
+                  boxShadow: AppTheme.glowShadow(
+                    opacity: 0.12,
+                    blur: 22,
+                    color: AppTheme.success,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.mark_email_read_outlined,
+                      color: AppTheme.success,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _successMessage!,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppTheme.onSurfaceBright,
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Error
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7F1D1D).withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFF2A1114),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.error.withValues(alpha: 0.3),
+                    color: AppTheme.error.withValues(alpha: 0.55),
+                  ),
+                  boxShadow: AppTheme.glowShadow(
+                    opacity: 0.14,
+                    blur: 24,
+                    color: AppTheme.error,
                   ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.error_outline_rounded,
                       color: AppTheme.error,
-                      size: 16,
+                      size: 22,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _errorMessage!,
-                        style: TextStyle(color: AppTheme.error, fontSize: 13),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppTheme.onSurfaceBright,
+                          height: 1.45,
+                        ),
                       ),
                     ),
                   ],
@@ -335,5 +426,3 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 }
-
-

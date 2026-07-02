@@ -394,7 +394,11 @@ class _HeroCopy extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.muted, size: 16),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppTheme.muted,
+                size: 16,
+              ),
               const SizedBox(height: 4),
               Container(
                 width: 1,
@@ -403,7 +407,10 @@ class _HeroCopy extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [AppTheme.primary.withValues(alpha: 0.3), Colors.transparent],
+                    colors: [
+                      AppTheme.primary.withValues(alpha: 0.3),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -1075,7 +1082,8 @@ class _FeaturesSection extends StatelessWidget {
                         _FeatureCard(
                           tag: 'DROP ANY FILE',
                           title: 'Drop Any File',
-                          subtitle: 'PDFs, images, zips — anything under 120MB.',
+                          subtitle:
+                              'PDFs, images, zips — anything under 120MB.',
                           deepDive:
                               'Perma.link accepts any file type up to 120MB. Browsers stream your file directly to Walrus via the Dartus SDK — we never touch your bytes on a server. Drag, drop, done.',
                           number: '05 / 05',
@@ -1895,9 +1903,7 @@ class _Footer extends StatelessWidget {
     );
   }
 
-  static const _productLinks = [
-    ('Upload', '/upload'),
-  ];
+  static const _productLinks = [('Upload', '/upload')];
 
   static const _protocolLinks = [
     ('GitHub', AppConstants.githubUrl),

@@ -50,10 +50,11 @@ GoRouter createRouter(AuthService authService) => GoRouter(
     GoRoute(
       path: '/:code',
       builder: (context, state) {
-        final autoDownload = state.uri.queryParameters['download'] != '0';
+        final params = state.uri.queryParameters;
         return FilePageScreen(
           code: state.pathParameters['code']!,
-          autoDownload: autoDownload,
+          autoDownload: params['download'] == '1',
+          autoRaw: params['raw'] == '1',
         );
       },
     ),

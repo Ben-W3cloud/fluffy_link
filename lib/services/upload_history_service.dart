@@ -29,17 +29,16 @@ class UploadHistoryEntry {
     return '$domain/$shortCode';
   }
 
-  String get walrusUrl =>
-      '${AppConstants.walrusAggregator}/v1/blobs/$blobId';
+  String get walrusUrl => '${AppConstants.walrusAggregator}/v1/blobs/$blobId';
 
   Map<String, dynamic> toJson() => {
-        'shortCode': shortCode,
-        'blobId': blobId,
-        'fileName': fileName,
-        'fileSize': fileSize,
-        'mimeType': mimeType,
-        'uploadedAt': uploadedAt.toIso8601String(),
-      };
+    'shortCode': shortCode,
+    'blobId': blobId,
+    'fileName': fileName,
+    'fileSize': fileSize,
+    'mimeType': mimeType,
+    'uploadedAt': uploadedAt.toIso8601String(),
+  };
 
   factory UploadHistoryEntry.fromJson(Map<String, dynamic> json) {
     return UploadHistoryEntry(
@@ -85,7 +84,10 @@ class UploadHistoryService {
     );
 
     final existing = await recent();
-    final next = <UploadHistoryEntry>[entry, ...existing.where((e) => e.shortCode != entry.shortCode)];
+    final next = <UploadHistoryEntry>[
+      entry,
+      ...existing.where((e) => e.shortCode != entry.shortCode),
+    ];
     final trimmed = next.take(maxEntries).toList();
 
     final prefs = await SharedPreferences.getInstance();

@@ -41,11 +41,15 @@ class _TextPreviewState extends State<TextPreview> {
       }
       final raw = utf8.decode(response.bodyBytes, allowMalformed: true);
       final lines = const LineSplitter().convert(raw);
-      final shown = lines.length > _maxLines ? lines.take(_maxLines).toList() : lines;
+      final shown = lines.length > _maxLines
+          ? lines.take(_maxLines).toList()
+          : lines;
       if (!mounted) return;
       setState(() {
         _text = shown.join('\n');
-        _truncated = lines.length > _maxLines || response.bodyBytes.length >= widget.maxBytes;
+        _truncated =
+            lines.length > _maxLines ||
+            response.bodyBytes.length >= widget.maxBytes;
         _loading = false;
       });
     } catch (e) {

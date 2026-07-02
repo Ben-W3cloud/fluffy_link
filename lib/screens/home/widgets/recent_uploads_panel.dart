@@ -156,20 +156,13 @@ class _RecentRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     FileUtils.formatBytes(entry.fileSize),
-                    style: TextStyle(
-                      color: AppTheme.mutedDim,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: AppTheme.mutedDim, fontSize: 11),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            _CodeChip(
-              code: entry.shortCode,
-              copied: copied,
-              onTap: onCopy,
-            ),
+            _CodeChip(code: entry.shortCode, copied: copied, onTap: onCopy),
             const SizedBox(width: 4),
             IconButton(
               onPressed: onOpen,
@@ -211,9 +204,7 @@ class _CodeChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: AppTheme.primary.withValues(alpha: 0.25),
-            ),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

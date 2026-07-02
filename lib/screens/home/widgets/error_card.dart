@@ -10,53 +10,75 @@ class ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Error icon
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF991B1B), Color(0xFFEF4444)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                  blurRadius: 28,
+      constraints: const BoxConstraints(maxWidth: 680),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
+        decoration: BoxDecoration(
+          color: const Color(0xFF211015),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppTheme.error.withValues(alpha: 0.55)),
+          boxShadow: AppTheme.glowShadow(
+            opacity: 0.16,
+            blur: 34,
+            color: AppTheme.error,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.error.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.error.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.error_outline_rounded,
+                    color: AppTheme.error,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Upload failed',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppTheme.onSurface,
+                          height: 1.55,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.error_outline_rounded,
-              color: Colors.white,
-              size: 28,
+            const SizedBox(height: 22),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Try again'),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Text('Upload failed', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: AppTheme.glassCard(borderRadius: 12),
-            child: Text(
-              message,
-              style: TextStyle(color: AppTheme.muted, height: 1.5),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Try again'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

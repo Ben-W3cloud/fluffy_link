@@ -1,5 +1,6 @@
 import 'package:fluffy_link/core/constants.dart';
 import 'package:fluffy_link/core/theme.dart';
+import 'package:fluffy_link/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,6 +24,8 @@ class AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 900;
+    final auth = AuthScope.of(context);
+    final isAuthenticated = auth.isAuthenticated;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -85,7 +88,11 @@ class AppNavBar extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _NavLink(label: 'Home', onTap: () => context.go('/')),
+                  _NavLink(
+                    label: isAuthenticated ? 'Dashboard' : 'Home',
+                    onTap: () =>
+                        context.go(isAuthenticated ? '/dashboard' : '/'),
+                  ),
                   // Section anchors only render on the landing route; on other
                   // pages the GlobalKey targets don't exist, so the labels would
                   // be silently dead links.
@@ -98,7 +105,7 @@ class AppNavBar extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 16),
-              _DashboardButton(),
+              _AuthMenuButton(auth: auth),
               const SizedBox(width: 8),
               // GitHub repo link.
               OutlinedButton.icon(
@@ -134,6 +141,8 @@ class AppNavBar extends StatelessWidget {
   }
 
   void _showMobileMenu(BuildContext context) {
+    final auth = AuthScope.of(context);
+    final isAuthenticated = auth.isAuthenticated;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
@@ -156,10 +165,10 @@ class AppNavBar extends StatelessWidget {
               ),
             ),
             _MobileNavItem(
-              label: 'Home',
+              label: isAuthenticated ? 'Dashboard' : 'Home',
               onTap: () {
                 Navigator.pop(sheetContext);
-                context.go('/');
+                context.go(isAuthenticated ? '/dashboard' : '/');
               },
             ),
             if (onScrollToWhy != null)
@@ -186,20 +195,37 @@ class AppNavBar extends StatelessWidget {
                   onScrollToWorkflow?.call();
                 },
               ),
-            _MobileNavItem(
-              label: 'Sign In',
-              onTap: () {
-                Navigator.pop(sheetContext);
-                context.go('/auth');
-              },
-            ),
+            if (isAuthenticated) ...[
+              _MobileNavItem(
+                label: 'Profile',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.go('/dashboard');
+                },
+              ),
+              _MobileNavItem(
+                label: 'Logout',
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await auth.signOut();
+                  if (context.mounted) context.go('/');
+                },
+              ),
+            ] else
+              _MobileNavItem(
+                label: 'Sign In',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.go('/auth');
+                },
+              ),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: () {
                   Navigator.pop(sheetContext);
-                  context.go('/auth');
+                  context.go(isAuthenticated ? '/upload' : '/auth');
                 },
                 icon: const Icon(Icons.upload_rounded, size: 16),
                 label: const Text('Upload a file'),
@@ -274,20 +300,101 @@ class _MobileNavItem extends StatelessWidget {
   }
 }
 
-/// Dashboard button — always visible, no auth required.
-class _DashboardButton extends StatelessWidget {
+class _AuthMenuButton extends StatelessWidget {
+  const _AuthMenuButton({required this.auth});
+
+  final AuthService auth;
+
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: () => context.go('/auth'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppTheme.onSurface,
+    if (!auth.isAuthenticated) {
+      return OutlinedButton.icon(
+        onPressed: () => context.go('/auth'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppTheme.onSurface,
+          side: BorderSide(color: AppTheme.border),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        icon: const Icon(Icons.login_rounded, size: 16),
+        label: const Text('Sign In', style: TextStyle(fontSize: 13)),
+      );
+    }
+
+    final email = auth.currentUser?.email ?? 'User';
+    final initial = email.trim().isEmpty ? 'U' : email.trim()[0].toUpperCase();
+
+    return PopupMenuButton<String>(
+      tooltip: 'Profile menu',
+      offset: const Offset(0, 42),
+      color: AppTheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: AppTheme.border),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      icon: const Icon(Icons.login_rounded, size: 16),
-      label: const Text('Sign In', style: TextStyle(fontSize: 13)),
+      onSelected: (value) async {
+        switch (value) {
+          case 'dashboard':
+          case 'profile':
+            context.go('/dashboard');
+          case 'logout':
+            await auth.signOut();
+            if (context.mounted) context.go('/');
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: 'dashboard',
+          child: _MenuRow(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+        ),
+        PopupMenuItem(
+          value: 'profile',
+          child: _MenuRow(icon: Icons.person_outline_rounded, label: 'Profile'),
+        ),
+        PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'logout',
+          child: _MenuRow(icon: Icons.logout_rounded, label: 'Logout'),
+        ),
+      ],
+      child: Container(
+        width: 42,
+        height: 42,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: AppTheme.glowShadow(opacity: 0.12, blur: 18),
+        ),
+        child: Text(
+          initial,
+          style: const TextStyle(
+            color: Color(0xFF04241F),
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.onSurface),
+        const SizedBox(width: 10),
+        Text(label, style: const TextStyle(color: AppTheme.onSurface)),
+      ],
     );
   }
 }

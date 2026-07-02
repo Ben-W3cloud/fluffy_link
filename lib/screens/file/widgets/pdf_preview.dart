@@ -82,11 +82,7 @@ class _PdfPreviewState extends State<PdfPreview> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.picture_as_pdf_rounded,
-              size: 28,
-              color: AppTheme.muted,
-            ),
+            Icon(Icons.picture_as_pdf_rounded, size: 28, color: AppTheme.muted),
             const SizedBox(height: 8),
             Text(error, style: TextStyle(color: AppTheme.muted)),
             const SizedBox(height: 4),

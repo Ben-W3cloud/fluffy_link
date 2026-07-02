@@ -36,8 +36,14 @@ class LinkService {
       );
 
       try {
-        if (userId == null || userId.isEmpty) {
+        final sessionUser = _supabase.auth.currentSession?.user;
+        if (sessionUser == null) {
           throw const AuthException('You must be signed in to upload files.');
+        }
+        if (userId != null && userId.isNotEmpty && userId != sessionUser.id) {
+          throw const AuthException(
+            'Authentication state is stale. Please sign in again.',
+          );
         }
 
         final data = await _supabase.rpc<Map<String, dynamic>>(

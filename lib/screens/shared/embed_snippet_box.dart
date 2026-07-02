@@ -172,7 +172,9 @@ class _EmbedSnippetBoxState extends State<EmbedSnippetBox> {
                                   : Icons.copy_rounded,
                               size: 16,
                             ),
-                            label: Text(_justCopied ? 'Copied' : 'Copy snippet'),
+                            label: Text(
+                              _justCopied ? 'Copied' : 'Copy snippet',
+                            ),
                           ),
                         ),
                       ],

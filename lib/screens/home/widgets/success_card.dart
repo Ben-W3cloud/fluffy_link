@@ -8,6 +8,7 @@ import 'package:fluffy_link/screens/shared/qr_panel.dart';
 import 'package:fluffy_link/screens/shared/storage_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UploadMetadata {
@@ -174,10 +175,7 @@ class _SuccessCardState extends State<SuccessCard> {
             _ActionButton(
               icon: Icons.open_in_new_rounded,
               label: 'View',
-              onPressed: () => launchUrl(
-                Uri.parse(widget.link.walrusUrl),
-                mode: LaunchMode.externalApplication,
-              ),
+              onPressed: () => context.go('/${widget.link.shortCode}'),
             ),
             const SizedBox(width: 12),
             _ActionButton(
@@ -240,10 +238,22 @@ class _SuccessCardState extends State<SuccessCard> {
           ),
         ),
         const SizedBox(height: 24),
-        TextButton.icon(
-          onPressed: widget.onReset,
-          icon: const Icon(Icons.upload_file_outlined),
-          label: const Text('Upload another file'),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            TextButton.icon(
+              onPressed: widget.onReset,
+              icon: const Icon(Icons.upload_file_outlined),
+              label: const Text('Upload another file'),
+            ),
+            TextButton.icon(
+              onPressed: () => context.go('/dashboard'),
+              icon: const Icon(Icons.dashboard_outlined),
+              label: const Text('View dashboard'),
+            ),
+          ],
         ),
       ],
     );

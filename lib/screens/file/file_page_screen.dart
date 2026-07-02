@@ -25,11 +25,13 @@ class FilePageScreen extends StatefulWidget {
     super.key,
     required this.code,
     this.autoDownload = false,
+    this.autoRaw = false,
     LinkService? linkService,
   }) : _linkService = linkService;
 
   final String code;
   final bool autoDownload;
+  final bool autoRaw;
   final LinkService? _linkService;
 
   @override
@@ -65,9 +67,13 @@ class _FilePageScreenState extends State<FilePageScreen> {
       }
       setState(() => _link = link);
 
-      if (widget.autoDownload && !_autoDownloadTriggered) {
+      if (!_autoDownloadTriggered && (widget.autoDownload || widget.autoRaw)) {
         _autoDownloadTriggered = true;
-        unawaited(_handleDownload());
+        if (widget.autoRaw) {
+          unawaited(_handleView());
+        } else {
+          unawaited(_handleDownload());
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -77,7 +83,7 @@ class _FilePageScreenState extends State<FilePageScreen> {
 
   bool get _isOwner {
     final link = _link;
-    final user = AuthScope.of(context).currentUser;
+    final user = AuthScope.of(context).currentSession?.user;
     if (link == null || user == null || link.userId == null) return false;
     return link.userId == user.id;
   }

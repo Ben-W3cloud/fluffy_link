@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:fluffy_link/core/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+enum SignUpStatus { signedIn, confirmationEmailSent }
 
 class AuthService with ChangeNotifier {
   AuthService({SupabaseClient? client}) : _client = client;
@@ -9,23 +13,21 @@ class AuthService with ChangeNotifier {
 
   SupabaseClient get _supabase => _client ?? Supabase.instance.client;
 
-  User? _currentUser;
+  Session? _currentSession;
+  StreamSubscription<AuthState>? _authSubscription;
   bool _initialized = false;
 
-  User? get currentUser => _currentUser;
+  Session? get currentSession => _currentSession;
+  User? get currentUser => _currentSession?.user;
   bool get isInitialized => _initialized;
-  bool get isAuthenticated => _currentUser != null;
+  bool get isAuthenticated => _currentSession?.user != null;
 
   Future<void> initialize() async {
     if (_initialized) return;
     try {
-      _currentUser = _supabase.auth.currentUser;
-      _supabase.auth.onAuthStateChange.listen((AuthState authState) {
-        final newUser = authState.session?.user;
-        if (newUser?.id != _currentUser?.id) {
-          _currentUser = newUser;
-          notifyListeners();
-        }
+      _currentSession = _supabase.auth.currentSession;
+      _authSubscription = _supabase.auth.onAuthStateChange.listen((authState) {
+        _setSession(authState.session);
       });
     } catch (e) {
       debugPrint('AuthService.initialize skipped: $e');
@@ -34,24 +36,20 @@ class AuthService with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      _currentUser = response.user;
-      notifyListeners();
+      _setSession(response.session);
     } catch (e) {
       debugPrint('Error signing in: $e');
       rethrow;
     }
   }
 
-  Future<void> signUp({
+  Future<SignUpStatus> signUp({
     required String email,
     required String password,
   }) async {
@@ -61,8 +59,12 @@ class AuthService with ChangeNotifier {
         password: password,
         emailRedirectTo: '${AppConstants.appDomain}/dashboard',
       );
-      _currentUser = response.user;
-      notifyListeners();
+      if (response.session != null) {
+        _setSession(response.session);
+        return SignUpStatus.signedIn;
+      }
+
+      return SignUpStatus.confirmationEmailSent;
     } catch (e) {
       debugPrint('Error signing up: $e');
       rethrow;
@@ -72,12 +74,27 @@ class AuthService with ChangeNotifier {
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
-      _currentUser = null;
-      notifyListeners();
+      _setSession(null);
     } catch (e) {
       debugPrint('Error signing out: $e');
       rethrow;
     }
+  }
+
+  void _setSession(Session? session) {
+    final previousUserId = _currentSession?.user.id;
+    final previousToken = _currentSession?.accessToken;
+    _currentSession = session;
+    if (previousUserId != session?.user.id ||
+        previousToken != session?.accessToken) {
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }
 
